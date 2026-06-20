@@ -1,0 +1,139 @@
+{
+  "id": "05-utility-types",
+  "title": "Utility Types",
+  "description": "TypeScript's built-in type transformers — reshape interfaces without rewriting them.",
+  "prerequisites": ["04-async"],
+  "challenges": [
+    {
+      "id": "utility-01",
+      "title": "Partial — all fields optional",
+      "topic": "05-utility-types",
+      "level": 1,
+      "type": "terminal",
+      "description": "Given:\n\n  interface Config { host: string; port: number; timeout: number }\n\nWhat does `Partial<Config>` produce?",
+      "whyMatters": "Partial is used constantly for update/patch operations — when you only want to change some fields of a config or resource, not replace the whole thing.",
+      "hints": ["Partial makes every property optional (adds ?)"],
+      "choices": [
+        { "label": "{ host?: string; port?: number; timeout?: number }", "correct": true },
+        { "label": "{ host: string | undefined; port: number | undefined; timeout: number | undefined }", "correct": false },
+        { "label": "{ host: string; port: number; timeout: number } (unchanged)", "correct": false },
+        { "label": "Removes all properties", "correct": false }
+      ]
+    },
+    {
+      "id": "utility-02",
+      "title": "Pick and Omit",
+      "topic": "05-utility-types",
+      "level": 1,
+      "type": "terminal",
+      "description": "Given:\n\n  interface Service { id: string; name: string; port: number; secret: string }\n\nWhich produces `{ id: string; name: string }`?\n\n  A)  Partial<Service>\n  B)  Pick<Service, 'id' | 'name'>\n  C)  Omit<Service, 'id' | 'name'>\n  D)  Required<Service>",
+      "whyMatters": "Omit is used when building public-facing types that exclude sensitive fields (like secrets). Pick is used when you only want a subset for a specific function.",
+      "hints": ["Pick keeps the listed keys, Omit removes them"],
+      "choices": [
+        { "label": "A)  Partial<Service>", "correct": false },
+        { "label": "B)  Pick<Service, 'id' | 'name'>`", "correct": true },
+        { "label": "C)  Omit<Service, 'id' | 'name'>", "correct": false },
+        { "label": "D)  Required<Service>", "correct": false }
+      ]
+    },
+    {
+      "id": "utility-03",
+      "title": "Record — typed key-value maps",
+      "topic": "05-utility-types",
+      "level": 2,
+      "type": "terminal",
+      "description": "What does `Record<string, number>` represent?\n\nAnd what would `Record<'prod' | 'staging' | 'dev', string>` look like?",
+      "whyMatters": "Environment-to-URL maps, service-to-port maps, status-to-count maps — Record is how you type dictionaries in production tooling.",
+      "hints": ["Record<K, V> is a shorthand for an object where all keys are K and all values are V"],
+      "choices": [
+        { "label": "An array of [string, number] tuples", "correct": false },
+        { "label": "{ [key: string]: number } — and { prod: string; staging: string; dev: string }", "correct": true },
+        { "label": "Map<string, number>", "correct": false },
+        { "label": "A function from string to number", "correct": false }
+      ]
+    },
+    {
+      "id": "utility-04",
+      "title": "Apply utility types to a patch function",
+      "topic": "05-utility-types",
+      "level": 2,
+      "type": "file",
+      "description": "Given an interface:\n\n  interface Deployment { id: string; name: string; image: string; replicas: number }\n\nWrite a function `patch(current: Deployment, updates: Partial<Omit<Deployment, 'id'>>): Deployment`\n\nIt should return a new object that merges the current deployment with the updates (id is never updated).\n\nAlso write `toPublic(d: Deployment): Omit<Deployment, 'id'>` that returns the deployment without the id field.",
+      "whyMatters": "Patch functions appear in every config management system. Omitting id from updates prevents accidentally overwriting resource identifiers.",
+      "hints": [
+        "Use object spread: { ...current, ...updates }",
+        "For toPublic, destructure to remove id: const { id, ...rest } = d"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "utility-05",
+      "title": "ReturnType and Parameters",
+      "topic": "05-utility-types",
+      "level": 3,
+      "type": "terminal",
+      "description": "Given:\n\n  function createServer(host: string, port: number): { host: string; port: number; start: () => void } { ... }\n\nWhat are these types?\n\n  type A = ReturnType<typeof createServer>\n  type B = Parameters<typeof createServer>",
+      "whyMatters": "ReturnType and Parameters let you derive types from existing functions without duplicating them — essential when working with third-party libraries that don't export their types.",
+      "hints": ["ReturnType extracts what a function returns, Parameters extracts the argument tuple"],
+      "choices": [
+        { "label": "A = { host: string; port: number; start: () => void }  B = [string, number]", "correct": true },
+        { "label": "A = void  B = string[]", "correct": false },
+        { "label": "A = Promise<...>  B = unknown[]", "correct": false },
+        { "label": "Both are any", "correct": false }
+      ]
+    },
+    {
+      "id": "utility-06",
+      "title": "Build an env config loader with Record",
+      "topic": "05-utility-types",
+      "level": 3,
+      "type": "file",
+      "description": "Write a function `loadEnv(keys: string[]): Record<string, string>` that reads environment variables.\n\nFor each key:\n- If the env var exists, include it in the result\n- If it doesn't exist, throw an Error: `\"Missing required env var: KEY\"`\n\nAlso write `buildServiceUrls(envs: Record<'API_HOST' | 'DB_HOST' | 'CACHE_HOST', string>): Record<string, string>` that returns:\n`{ api: 'http://{API_HOST}', db: 'postgresql://{DB_HOST}', cache: 'redis://{CACHE_HOST}' }`",
+      "whyMatters": "Loading and validating env vars at startup is one of the first things any software engineering script does. Typed Records make the shape explicit.",
+      "hints": [
+        "process.env[key] returns string | undefined",
+        "Use reduce or a for loop to build the Record",
+        "The envs parameter keys are a union literal — use them directly in the template"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "utility-07",
+      "title": "Readonly — immutable types",
+      "topic": "05-utility-types",
+      "level": 4,
+      "type": "terminal",
+      "description": "What error does TypeScript produce here?\n\n  const config: Readonly<{ host: string; port: number }> = { host: 'localhost', port: 8080 }\n  config.port = 9090",
+      "whyMatters": "Marking config objects as Readonly prevents accidental mutation — especially important when the same config object is passed to multiple services.",
+      "hints": ["Readonly makes all properties non-writable at the type level"],
+      "choices": [
+        { "label": "No error — Readonly is only a hint", "correct": false },
+        { "label": "Cannot assign to 'port' because it is a read-only property", "correct": true },
+        { "label": "Type 'number' is not assignable to type 'string'", "correct": false },
+        { "label": "Runtime error only, not compile time", "correct": false }
+      ]
+    },
+    {
+      "id": "utility-08",
+      "title": "Compose utility types for a real shape",
+      "topic": "05-utility-types",
+      "level": 4,
+      "type": "file",
+      "description": "Given:\n\n  interface ServiceSpec { id: string; name: string; image: string; port: number; secret: string; replicas: number }\n\nUsing only utility types (no new interface declarations), derive and export:\n\n- `PublicSpec` — ServiceSpec without id and secret\n- `PatchSpec` — all fields of PublicSpec optional\n- `EnvMap` — a Record mapping 'prod' | 'staging' | 'dev' to PublicSpec\n\nThen write `makeEnvMap(specs: PublicSpec[]): EnvMap` — takes exactly 3 specs (prod, staging, dev in that order) and returns the EnvMap.",
+      "whyMatters": "Deriving types from a single source of truth avoids drift — change ServiceSpec and all derived types update automatically.",
+      "hints": [
+        "PublicSpec = Omit<ServiceSpec, 'id' | 'secret'>",
+        "PatchSpec = Partial<PublicSpec>",
+        "EnvMap = Record<'prod' | 'staging' | 'dev', PublicSpec>",
+        "makeEnvMap destructures the array: const [prod, staging, dev] = specs"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

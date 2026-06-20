@@ -1,0 +1,124 @@
+{
+  "id": "16-intersections-overloads",
+  "title": "Intersection Types & Function Overloads",
+  "description": "Combine types with &, build mixin patterns, and write functions with multiple typed call signatures.",
+  "prerequisites": ["15-testing-streams"],
+  "challenges": [
+    {
+      "id": "intersect-01",
+      "title": "What is an intersection type?",
+      "topic": "16-intersections-overloads",
+      "level": 1,
+      "type": "terminal",
+      "description": "What does `A & B` mean, and what must a value satisfy to be assignable to it?\n\n  type Timestamped = { createdAt: string }\n  type Named = { name: string }\n  type TimestampedNamed = Timestamped & Named\n\n  const x: TimestampedNamed = ???",
+      "whyMatters": "Intersection types are how you compose behaviours — a logged service, a retryable client, an auditable config all combine multiple concerns into one type.",
+      "hints": ["& means the value must satisfy ALL constituent types simultaneously"],
+      "choices": [
+        { "label": "{ name: string } — only the last type matters", "correct": false },
+        { "label": "{ createdAt: string } | { name: string } — either property is enough", "correct": false },
+        { "label": "{ createdAt: string; name: string } — must have ALL properties from both types", "correct": true },
+        { "label": "never — two types cannot be merged", "correct": false }
+      ]
+    },
+    {
+      "id": "intersect-02",
+      "title": "Intersection vs union",
+      "topic": "16-intersections-overloads",
+      "level": 1,
+      "type": "terminal",
+      "description": "Given:\n\n  type A = { x: number }\n  type B = { y: string }\n\n  type Union = A | B         // what can you safely access?\n  type Intersection = A & B  // what can you safely access?",
+      "whyMatters": "Confusing & with | is one of the most common TypeScript mistakes. Knowing the difference immediately is fundamental.",
+      "hints": ["Union: only shared properties are safe. Intersection: all properties from both are available."],
+      "choices": [
+        { "label": "Union: x and y  ·  Intersection: neither without narrowing", "correct": false },
+        { "label": "Union: neither x nor y without narrowing  ·  Intersection: both x and y", "correct": true },
+        { "label": "They are identical — & and | are aliases", "correct": false },
+        { "label": "Union: y only  ·  Intersection: x only", "correct": false }
+      ]
+    },
+    {
+      "id": "intersect-03",
+      "title": "Function overload signatures",
+      "topic": "16-intersections-overloads",
+      "level": 2,
+      "type": "terminal",
+      "description": "What do the overload signatures define, and what is the implementation signature's role?\n\n  function parse(input: string): number\n  function parse(input: number): string\n  function parse(input: string | number): string | number {\n    return typeof input === 'string' ? parseInt(input, 10) : String(input)\n  }",
+      "whyMatters": "Overloads let callers get the precise return type based on what they pass in — no union in, no union out. Used in every well-typed utility library.",
+      "hints": ["The implementation signature is not visible to callers — only the overload signatures are"],
+      "choices": [
+        { "label": "parse('5') returns string | number", "correct": false },
+        { "label": "parse('5') returns number  ·  parse(5) returns string  ·  implementation signature is private to the function body", "correct": true },
+        { "label": "The implementation signature is the one callers see", "correct": false },
+        { "label": "Overloads are only for classes, not standalone functions", "correct": false }
+      ]
+    },
+    {
+      "id": "intersect-04",
+      "title": "Write intersection-based mixin types",
+      "topic": "16-intersections-overloads",
+      "level": 2,
+      "type": "file",
+      "description": "Define these composable types and functions:\n\n  type Identifiable = { id: string }\n  type Timestamped = { createdAt: string; updatedAt: string }\n  type Auditable = { createdBy: string; updatedBy: string }\n\nDerive:\n  type Entity = Identifiable & Timestamped\n  type AuditedEntity = Entity & Auditable\n\nWrite:\n- `createEntity(id: string): Entity` — sets id, createdAt and updatedAt to current ISO string\n- `withAudit(entity: Entity, user: string): AuditedEntity` — adds audit fields to an existing entity\n- `isAudited(e: Entity | AuditedEntity): e is AuditedEntity` — type guard checking for audit fields",
+      "whyMatters": "Mixin types built with & are how you model layered concerns — every database record, audit log, and event sourcing system uses this pattern.",
+      "hints": [
+        "new Date().toISOString() for timestamps",
+        "withAudit: spread entity and add createdBy/updatedBy",
+        "isAudited: check 'createdBy' in e && 'updatedBy' in e"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "intersect-05",
+      "title": "Intersection with function types",
+      "topic": "16-intersections-overloads",
+      "level": 3,
+      "type": "terminal",
+      "description": "What type does `Callable` represent here, and what can you do with a value of this type?\n\n  type Loggable = { log(msg: string): void }\n  type Callable = (() => void) & Loggable\n\n  declare const fn: Callable\n  fn()         // ?\n  fn.log('x')  // ?",
+      "whyMatters": "Functions with attached properties appear in real APIs — Express middleware, event emitters, CLI command objects. Intersection types are how you type them.",
+      "hints": ["Callable is both a function and an object with a log method — both usages are valid"],
+      "choices": [
+        { "label": "fn() errors — you can only call it as fn.log()", "correct": false },
+        { "label": "fn() works (it's a function) and fn.log('x') works (it has the Loggable shape) — both are valid", "correct": true },
+        { "label": "Intersection of a function and object type is always never", "correct": false },
+        { "label": "fn.log('x') errors — function types cannot have properties", "correct": false }
+      ]
+    },
+    {
+      "id": "intersect-06",
+      "title": "Write function overloads",
+      "topic": "16-intersections-overloads",
+      "level": 3,
+      "type": "file",
+      "description": "Write these overloaded functions:\n\n1. `format(value: string): string` — pads to 10 chars with spaces on the right\n   `format(value: number): string` — formats with 2 decimal places\n   `format(value: boolean): string` — returns 'yes' or 'no'\n\n2. `lookup(map: Record<string, string>, key: string): string`\n   `lookup(map: Record<string, string>, key: string, fallback: string): string`\n   — returns map[key] or throws if not found (no fallback), or returns fallback (with fallback)\n\n3. `coerce(val: string): number`\n   `coerce(val: number): string`\n   — converts between string and number",
+      "whyMatters": "Overloads are how well-typed utility libraries avoid returning messy union types at every call site. Every time you've used a library function that knows its return type from its argument, overloads made that possible.",
+      "hints": [
+        "Write overload signatures first, then the implementation with union types",
+        "format implementation: switch on typeof value",
+        "lookup: check if key in map for the no-fallback overload"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "intersect-07",
+      "title": "Build a typed middleware chain",
+      "topic": "16-intersections-overloads",
+      "level": 4,
+      "type": "file",
+      "description": "Build a typed middleware system using intersection types:\n\n  type Context = { path: string; method: string; body: unknown }\n  type AuthContext = Context & { userId: string; role: 'admin' | 'user' }\n  type LoggedContext = Context & { requestId: string; startedAt: number }\n  type FullContext = AuthContext & LoggedContext\n\n  type Middleware<In, Out extends In> = (ctx: In) => Out\n\nWrite:\n- `withAuth(ctx: Context): AuthContext` — adds userId 'user-123' and role 'user'\n- `withLogging(ctx: Context): LoggedContext` — adds requestId (random 8-char hex) and startedAt (Date.now())\n- `compose<A, B extends A, C extends B>(m1: Middleware<A, B>, m2: Middleware<B, C>): Middleware<A, C>` — chains two middlewares\n- Use compose to create `fullMiddleware: Middleware<Context, FullContext>`",
+      "whyMatters": "Typed middleware chains are the backbone of every HTTP framework. This pattern shows how intersection types naturally model context enrichment — each middleware adds to what's available downstream.",
+      "hints": [
+        "withAuth returns { ...ctx, userId: 'user-123', role: 'user' }",
+        "Math.random().toString(16).slice(2, 10) for requestId",
+        "compose: return (ctx) => m2(m1(ctx))",
+        "fullMiddleware = compose(withLogging, withAuth) — order matters for type inference"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

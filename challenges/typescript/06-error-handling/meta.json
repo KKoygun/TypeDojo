@@ -1,0 +1,139 @@
+{
+  "id": "06-error-handling",
+  "title": "Error Handling",
+  "description": "Typed errors, discriminated error unions, the never type, and patterns that make failures explicit.",
+  "prerequisites": ["05-utility-types"],
+  "challenges": [
+    {
+      "id": "error-01",
+      "title": "Why catch gives you unknown",
+      "topic": "06-error-handling",
+      "level": 1,
+      "type": "terminal",
+      "description": "In strict TypeScript, what type is `err` in a catch block, and what must you do before calling `err.message`?\n\n  try { riskyOp() } catch (err) { console.log(err.message) }",
+      "whyMatters": "Untyped catch blocks are the most common source of runtime crashes in TypeScript software engineering scripts. Understanding this prevents silent failures in production.",
+      "hints": ["err is unknown — you must narrow it before accessing properties"],
+      "choices": [
+        { "label": "err is Error — .message is always safe", "correct": false },
+        { "label": "err is unknown — you must narrow with instanceof Error before using .message", "correct": true },
+        { "label": "err is any — anything goes", "correct": false },
+        { "label": "err is string — it's always the error message", "correct": false }
+      ]
+    },
+    {
+      "id": "error-02",
+      "title": "Custom error classes",
+      "topic": "06-error-handling",
+      "level": 1,
+      "type": "terminal",
+      "description": "Which approach correctly creates a typed custom error that can be caught and narrowed with instanceof?\n\n  A)  const NetworkError = { message: 'network failed' }\n  B)  type NetworkError = { message: string }\n  C)  class NetworkError extends Error { constructor(msg: string) { super(msg); this.name = 'NetworkError' } }\n  D)  const NetworkError = (msg: string) => new Error(msg)",
+      "whyMatters": "Custom error classes let you distinguish between a timeout, a DNS failure, and an auth error in your catch block — essential for intelligent retry logic.",
+      "hints": ["instanceof only works with class instances, not plain objects or type aliases"],
+      "choices": [
+        { "label": "A)  const NetworkError = { message: 'network failed' }", "correct": false },
+        { "label": "B)  type NetworkError = { message: string }", "correct": false },
+        { "label": "C)  class NetworkError extends Error { ... }", "correct": true },
+        { "label": "D)  const NetworkError = (msg: string) => new Error(msg)", "correct": false }
+      ]
+    },
+    {
+      "id": "error-03",
+      "title": "Write a typed error hierarchy",
+      "topic": "06-error-handling",
+      "level": 2,
+      "type": "file",
+      "description": "Create a typed error hierarchy:\n\n- `AppError` — base class extending Error, adds `code: string` property\n- `NetworkError` extends AppError — adds `statusCode: number`\n- `ConfigError` extends AppError — adds `field: string`\n\nThen write `handleError(err: unknown): string` that:\n- If it's a NetworkError: returns `\"Network [statusCode]: message\"`\n- If it's a ConfigError: returns `\"Config error on field 'field': message\"`\n- If it's an AppError: returns `\"App error [code]: message\"`\n- If it's a plain Error: returns `\"Error: message\"`\n- Otherwise: returns `\"Unknown error\"`",
+      "whyMatters": "This is the error handling pattern used in every robust software engineering tool — a hierarchy you can catch broadly or narrowly depending on what you need to do.",
+      "hints": [
+        "Check most specific type first: NetworkError before AppError",
+        "instanceof checks go from most specific to least specific",
+        "Set this.name = 'NetworkError' etc. in each constructor for better stack traces"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "error-04",
+      "title": "The never type",
+      "topic": "06-error-handling",
+      "level": 2,
+      "type": "terminal",
+      "description": "What is the purpose of `never` in this exhaustive check?\n\n  type Status = 'running' | 'stopped' | 'failed'\n\n  function describe(s: Status): string {\n    switch (s) {\n      case 'running': return 'Service is up'\n      case 'stopped': return 'Service is down'\n      case 'failed':  return 'Service has crashed'\n      default:\n        const _exhaustive: never = s\n        return _exhaustive\n    }\n  }",
+      "whyMatters": "Exhaustive checks mean adding a new Status value forces a compile error everywhere the switch is used — no silent unhandled cases in your monitoring code.",
+      "hints": ["never is the type of something that can never occur — if the default is reached, something went wrong"],
+      "choices": [
+        { "label": "It crashes at runtime if an unknown status is passed", "correct": false },
+        { "label": "It causes a compile error if any Status value is not handled in the switch", "correct": true },
+        { "label": "It returns undefined for unknown values", "correct": false },
+        { "label": "It is just a convention — no actual enforcement", "correct": false }
+      ]
+    },
+    {
+      "id": "error-05",
+      "title": "Discriminated union errors",
+      "topic": "06-error-handling",
+      "level": 3,
+      "type": "terminal",
+      "description": "What makes this a discriminated union, and why is it better than a single Error class with optional fields?\n\n  type AppError =\n    | { kind: 'network'; statusCode: number; url: string }\n    | { kind: 'timeout'; url: string; ms: number }\n    | { kind: 'auth'; reason: string }",
+      "whyMatters": "Discriminated unions make error handling exhaustive and self-documenting — each error shape has exactly the fields it needs, no undefined optional fields.",
+      "hints": ["The discriminant is the shared literal property — 'kind' in this case"],
+      "choices": [
+        { "label": "The kind property is a literal type shared across all variants — narrowing on it gives you the exact shape", "correct": true },
+        { "label": "It is a class hierarchy in disguise", "correct": false },
+        { "label": "Optional fields would be just as type-safe", "correct": false },
+        { "label": "There is no practical difference from a single Error class", "correct": false }
+      ]
+    },
+    {
+      "id": "error-06",
+      "title": "Write an error discriminated union handler",
+      "topic": "06-error-handling",
+      "level": 3,
+      "type": "file",
+      "description": "Define a discriminated union type `ServiceError`:\n- `{ kind: 'network'; statusCode: number; url: string }`\n- `{ kind: 'timeout'; url: string; durationMs: number }`\n- `{ kind: 'config'; field: string; reason: string }`\n\nWrite `formatError(err: ServiceError): string` that returns:\n- network: `\"HTTP statusCode at url\"`\n- timeout: `\"Timeout after durationMsms at url\"`\n- config: `\"Invalid config field 'field': reason\"`\n\nWrite `shouldRetry(err: ServiceError): boolean`:\n- network with statusCode >= 500: true\n- timeout: true\n- everything else: false\n\nMake the switch exhaustive with a never guard.",
+      "whyMatters": "shouldRetry is a real function you'd write in any resilient software engineering tool — the discriminated union makes it impossible to forget a case.",
+      "hints": [
+        "switch (err.kind) narrows automatically",
+        "For the never guard in default: const _: never = err; throw new Error('unhandled')",
+        "statusCode >= 500 check goes inside the 'network' case"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "error-07",
+      "title": "Error boundaries with Result",
+      "topic": "06-error-handling",
+      "level": 4,
+      "type": "terminal",
+      "description": "Which of these patterns best prevents unhandled exceptions from propagating in a CLI tool?\n\n  A)  Wrap everything in try/catch at the top level\n  B)  Use Result<T, E> return types so errors are part of the function signature\n  C)  Use process.on('uncaughtException') to catch everything\n  D)  Never throw — return undefined on failure",
+      "whyMatters": "Result types make error paths visible at the call site — callers can't ignore failures the way they can with thrown exceptions.",
+      "hints": ["Think about what the type system can enforce vs what it can't"],
+      "choices": [
+        { "label": "A)  Wrap everything in try/catch at the top level", "correct": false },
+        { "label": "B)  Use Result<T, E> return types so errors are part of the function signature", "correct": true },
+        { "label": "C)  Use process.on('uncaughtException') to catch everything", "correct": false },
+        { "label": "D)  Never throw — return undefined on failure", "correct": false }
+      ]
+    },
+    {
+      "id": "error-08",
+      "title": "Build a safe async wrapper",
+      "topic": "06-error-handling",
+      "level": 4,
+      "type": "file",
+      "description": "Write a generic function `tryCatch<T>(fn: () => Promise<T>): Promise<Result<T>>`\n\nWhere Result<T> is:\n- `{ ok: true; value: T }` on success\n- `{ ok: false; error: string }` on failure\n\nIt should never throw — always return a Result.\n\nThen write `runAll<T>(tasks: Array<() => Promise<T>>): Promise<Result<T>[]>` that runs all tasks in parallel and returns all results (never rejects).\n\nFinally write `countResults<T>(results: Result<T>[]): { passed: number; failed: number }`.",
+      "whyMatters": "tryCatch + runAll is the pattern behind every parallel health checker, batch processor, and multi-service status tool you'd write.",
+      "hints": [
+        "In tryCatch, use try/catch inside an async function, return { ok: true, value } or { ok: false, error: String(e) }",
+        "runAll maps each task through tryCatch, then Promise.all",
+        "countResults filters by ok property"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

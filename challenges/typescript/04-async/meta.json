@@ -1,0 +1,155 @@
+{
+  "id": "04-async",
+  "title": "Async & Promises",
+  "description": "From callbacks to async generators — understand how TypeScript types asynchronous code at every level.",
+  "prerequisites": ["03-generics"],
+  "challenges": [
+    {
+      "id": "async-01",
+      "title": "What does async return?",
+      "topic": "04-async",
+      "level": 1,
+      "type": "terminal",
+      "description": "What is the return type of this function?\n\n  async function getName(): Promise<string> {\n    return \"Alice\"\n  }\n\nIf you call `getName()` without await, what do you get?",
+      "whyMatters": "Every external call — HTTP requests, database queries, file reads — is async. Knowing what an async function returns prevents you from accidentally using a Promise where you need a value.",
+      "hints": ["async functions always return a Promise, even if you return a plain value"],
+      "choices": [
+        { "label": "\"Alice\" (the string directly)", "correct": false },
+        { "label": "Promise<string>", "correct": true },
+        { "label": "Promise<void>", "correct": false },
+        { "label": "undefined", "correct": false }
+      ]
+    },
+    {
+      "id": "async-02",
+      "title": "await unwraps the Promise",
+      "topic": "04-async",
+      "level": 1,
+      "type": "terminal",
+      "description": "Given:\n\n  async function getCount(): Promise<number> {\n    return 42\n  }\n\n  async function main() {\n    const count = await getCount()\n    // what type is count here?\n  }\n\nWhat type does TypeScript infer for `count`?",
+      "whyMatters": "await strips the Promise wrapper — this is the basic mental model you need for every async operation in production tooling.",
+      "hints": ["await removes one layer of Promise<T> to give you T"],
+      "choices": [
+        { "label": "Promise<number>", "correct": false },
+        { "label": "number", "correct": true },
+        { "label": "number | undefined", "correct": false },
+        { "label": "unknown", "correct": false }
+      ]
+    },
+    {
+      "id": "async-03",
+      "title": "Write your first async function",
+      "topic": "04-async",
+      "level": 2,
+      "type": "file",
+      "description": "Write an async function `delay(ms: number): Promise<void>` that resolves after `ms` milliseconds.\n\nThen write `delayedGreeting(name: string, ms: number): Promise<string>` that waits `ms` milliseconds and then returns `\"Hello, {name}!\"`.",
+      "whyMatters": "Delay utilities are used in retry loops, rate limiters, and health check polling — common patterns in any software engineering automation script.",
+      "hints": [
+        "Use new Promise<void>((resolve) => setTimeout(resolve, ms))",
+        "In delayedGreeting, await delay(ms) before returning the string"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "async-04",
+      "title": "Typed error handling",
+      "topic": "04-async",
+      "level": 2,
+      "type": "terminal",
+      "description": "What type does TypeScript give `err` in a catch block?\n\n  try {\n    await riskyOperation()\n  } catch (err) {\n    // what is the type of err?\n  }",
+      "whyMatters": "Errors in async code are caught as unknown in strict TypeScript — you must narrow before using them. This trips up everyone the first time.",
+      "hints": ["TypeScript can't know what was thrown — it could be anything"],
+      "choices": [
+        { "label": "Error", "correct": false },
+        { "label": "string", "correct": false },
+        { "label": "unknown", "correct": true },
+        { "label": "any", "correct": false }
+      ]
+    },
+    {
+      "id": "async-05",
+      "title": "Promise.all — parallel execution",
+      "topic": "04-async",
+      "level": 3,
+      "type": "terminal",
+      "description": "What does `Promise.all` do differently from awaiting each promise sequentially?\n\n  // Sequential (await each)\n  const a = await fetchA()  // waits 1s\n  const b = await fetchB()  // then waits 1s → total: 2s\n\n  // Parallel\n  const [a, b] = await Promise.all([fetchA(), fetchB()])  // total: 1s\n\nAnd if fetchB() rejects, what happens?",
+      "whyMatters": "Checking multiple services, fetching multiple config sources, or running parallel health checks — Promise.all is your tool. Knowing its failure behavior prevents silent partial results.",
+      "hints": ["Promise.all rejects as soon as any promise rejects"],
+      "choices": [
+        { "label": "fetchA result is returned, fetchB error is ignored", "correct": false },
+        { "label": "Promise.all rejects immediately with fetchB's error", "correct": true },
+        { "label": "Both errors are collected into an array", "correct": false },
+        { "label": "Promise.all waits for all to settle regardless", "correct": false }
+      ]
+    },
+    {
+      "id": "async-06",
+      "title": "Write a parallel health checker",
+      "topic": "04-async",
+      "level": 3,
+      "type": "file",
+      "description": "Write a function `checkAll(urls: string[]): Promise<{ url: string; ok: boolean }[]>`\n\nIt should check all URLs in parallel (not sequentially). For this exercise, simulate each check with a function `ping(url: string): Promise<boolean>` that is already imported.\n\nReturn results for ALL urls — even if some fail. Use `Promise.allSettled` so one failure doesn't abort the rest.",
+      "whyMatters": "This is a real health check pattern. You want results for all services, not an abort on the first failure. Promise.allSettled is the correct tool here over Promise.all.",
+      "hints": [
+        "Promise.allSettled returns { status: 'fulfilled' | 'rejected', value/reason }[]",
+        "Map over urls, call ping(url) for each, pass all to Promise.allSettled",
+        "Narrow each result: result.status === 'fulfilled' to access result.value"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "async-07",
+      "title": "AbortController — cancellation",
+      "topic": "04-async",
+      "level": 4,
+      "type": "terminal",
+      "description": "What is the correct way to pass cancellation signal to a fetch call?\n\n  const controller = new AbortController()\n\n  // cancel after 5 seconds\n  setTimeout(() => controller.abort(), 5000)\n\n  // which option correctly passes the signal?\n\n  A)  fetch(url, { abort: controller })\n  B)  fetch(url, { signal: controller.signal })\n  C)  fetch(url, { controller: controller.signal })\n  D)  fetch(url).abort(controller.signal)",
+      "whyMatters": "Timeout-aware HTTP calls are mandatory in production production tooling — a hanging fetch will block your entire health check loop.",
+      "hints": ["AbortController has a .signal property that is passed to the options object"],
+      "choices": [
+        { "label": "A)  fetch(url, { abort: controller })", "correct": false },
+        { "label": "B)  fetch(url, { signal: controller.signal })", "correct": true },
+        { "label": "C)  fetch(url, { controller: controller.signal })", "correct": false },
+        { "label": "D)  fetch(url).abort(controller.signal)", "correct": false }
+      ]
+    },
+    {
+      "id": "async-08",
+      "title": "Write a timeout-aware fetch wrapper",
+      "topic": "04-async",
+      "level": 4,
+      "type": "file",
+      "description": "Write a function `fetchWithTimeout(url: string, timeoutMs: number): Promise<string>`\n\nIt should:\n1. Create an AbortController\n2. Set a timeout that aborts after `timeoutMs`\n3. Fetch the URL with the signal\n4. Return the response body as text\n5. If aborted, throw an Error with message `\"Request timed out: {url}\"`\n6. Clear the timeout if the fetch succeeds (to avoid memory leaks)\n\nFor testing purposes, `fetch` is provided as a global mock.",
+      "whyMatters": "Every external HTTP call in your production tooling needs a timeout. This wrapper is something you'd write on day one of a new service.",
+      "hints": [
+        "const controller = new AbortController()",
+        "const timer = setTimeout(() => controller.abort(), timeoutMs)",
+        "Wrap in try/finally — clearTimeout(timer) goes in finally",
+        "Check if error is an AbortError: err instanceof Error && err.name === 'AbortError'"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "async-09",
+      "title": "Async generators — concept",
+      "topic": "04-async",
+      "level": 5,
+      "type": "terminal",
+      "description": "What does this function produce?\n\n  async function* streamLines(text: string): AsyncGenerator<string> {\n    for (const line of text.split('\\n')) {\n      yield line\n    }\n  }\n\n  // consumed with:\n  for await (const line of streamLines(\"a\\nb\\nc\")) {\n    console.log(line)\n  }",
+      "whyMatters": "Log streaming, Kubernetes event watching, and large file processing all use async generators — you read one item at a time instead of loading everything into memory.",
+      "hints": ["async function* with yield produces values one at a time on demand"],
+      "choices": [
+        { "label": "Prints all three lines at once after the loop", "correct": false },
+        { "label": "Prints 'a', then 'b', then 'c' — one per iteration", "correct": true },
+        { "label": "Returns a Promise<string[]>", "correct": false },
+        { "label": "Throws because you can't use for..of with async", "correct": false }
+      ]
+    }
+  ]
+}

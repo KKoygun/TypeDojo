@@ -1,0 +1,122 @@
+{
+  "id": "03-generics",
+  "title": "Generics",
+  "description": "Write reusable, type-safe functions and structures that work across types without sacrificing type information.",
+  "prerequisites": ["02-interfaces"],
+  "challenges": [
+    {
+      "id": "generics-01",
+      "title": "What do generics solve?",
+      "topic": "03-generics",
+      "level": 1,
+      "type": "terminal",
+      "description": "Why would you use a generic instead of `any`?\n\n  A)  Generics are faster at runtime\n  B)  Generics preserve type information — the return type relates to the input type\n  C)  Generics allow any value just like any does, but look nicer\n  D)  Generics only work with arrays",
+      "whyMatters": "Generic utility functions — wrappers, parsers, result types — are how production tooling stays typed end-to-end without casting everything to any.",
+      "hints": ["Think about what you lose when you return any from a function"],
+      "choices": [
+        { "label": "A)  Generics are faster at runtime", "correct": false },
+        { "label": "B)  Generics preserve type information — the return type relates to the input type", "correct": true },
+        { "label": "C)  Generics allow any value just like any does, but look nicer", "correct": false },
+        { "label": "D)  Generics only work with arrays", "correct": false }
+      ]
+    },
+    {
+      "id": "generics-02",
+      "title": "Read generic syntax",
+      "topic": "03-generics",
+      "level": 1,
+      "type": "terminal",
+      "description": "What does T represent in this function?\n\n  function first<T>(arr: T[]): T | undefined {\n    return arr[0]\n  }\n\nIf called as `first([1, 2, 3])`, what is the return type?",
+      "whyMatters": "You'll call generic functions constantly — understanding what T resolves to tells you what type you're working with downstream.",
+      "hints": ["TypeScript infers T from the argument you pass in"],
+      "choices": [
+        { "label": "any", "correct": false },
+        { "label": "number | undefined", "correct": true },
+        { "label": "T | undefined (unresolved)", "correct": false },
+        { "label": "unknown", "correct": false }
+      ]
+    },
+    {
+      "id": "generics-03",
+      "title": "Generic constraints",
+      "topic": "03-generics",
+      "level": 2,
+      "type": "terminal",
+      "description": "What does `extends` mean in a generic constraint?\n\n  function getLength<T extends { length: number }>(value: T): number {\n    return value.length\n  }\n\n  A)  T must be a subclass of { length: number }\n  B)  T can be anything but defaults to { length: number }\n  C)  T must have at least a `length: number` property\n  D)  T is replaced by { length: number } at compile time",
+      "whyMatters": "Constrained generics let you write functions that work on arrays, strings, and custom collections — all things that have length — without losing type safety.",
+      "hints": ["extends in a constraint means 'must be assignable to'"],
+      "choices": [
+        { "label": "A)  T must be a subclass of { length: number }", "correct": false },
+        { "label": "B)  T can be anything but defaults to { length: number }", "correct": false },
+        { "label": "C)  T must have at least a `length: number` property", "correct": true },
+        { "label": "D)  T is replaced by { length: number } at compile time", "correct": false }
+      ]
+    },
+    {
+      "id": "generics-04",
+      "title": "Write a generic identity function",
+      "topic": "03-generics",
+      "level": 2,
+      "type": "file",
+      "description": "Write a generic function `wrap` that takes any value and returns it wrapped in an object:\n\n  wrap(42)       → { value: 42 }\n  wrap(\"hello\")  → { value: \"hello\" }\n  wrap(true)     → { value: true }\n\nThe return type must preserve the input type — `wrap(42)` should return `{ value: number }`, not `{ value: any }`.",
+      "whyMatters": "Wrapper types appear everywhere in production tooling — Result<T>, ApiResponse<T>, CacheEntry<T>. This is the simplest version of that pattern.",
+      "hints": [
+        "Declare a type parameter: function wrap<T>(value: T)",
+        "The return type can be written as { value: T }"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "generics-05",
+      "title": "Generic interface",
+      "topic": "03-generics",
+      "level": 3,
+      "type": "terminal",
+      "description": "What does this interface represent, and what is the type of `data` when you use `ApiResponse<User[]>`?\n\n  interface ApiResponse<T> {\n    data: T\n    status: number\n    error?: string\n  }",
+      "whyMatters": "Typed API response wrappers are the first thing you write when building any HTTP client or service integration.",
+      "hints": ["Substitute T with User[] everywhere T appears"],
+      "choices": [
+        { "label": "data is T (unresolved)", "correct": false },
+        { "label": "data is User[]", "correct": true },
+        { "label": "data is User", "correct": false },
+        { "label": "data is any", "correct": false }
+      ]
+    },
+    {
+      "id": "generics-06",
+      "title": "Write a typed Result type",
+      "topic": "03-generics",
+      "level": 3,
+      "type": "file",
+      "description": "Define a generic `Result<T>` type that represents either success or failure:\n\n- On success: `{ ok: true, value: T }`\n- On failure: `{ ok: false, error: string }`\n\nThen write two helper functions:\n- `succeed<T>(value: T): Result<T>` — creates a success result\n- `fail<T>(error: string): Result<T>` — creates a failure result\n\nAnd a function `unwrap<T>(result: Result<T>): T` that returns the value or throws the error string.",
+      "whyMatters": "The Result pattern replaces throw/catch in functional production code — config parsers, health checkers, and CLI tools all benefit from explicit error handling without exceptions.",
+      "hints": [
+        "Use a union type for Result<T>: success shape | failure shape",
+        "In unwrap, narrow with result.ok to access result.value safely",
+        "throw result.error works since error is a string"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "generics-07",
+      "title": "Generic with keyof constraint",
+      "topic": "03-generics",
+      "level": 4,
+      "type": "file",
+      "description": "Write a generic function `pluck<T, K extends keyof T>(items: T[], key: K): T[K][]`\n\nIt takes an array of objects and a key name, and returns an array of the values at that key.\n\n  pluck([{ name: 'api', port: 8080 }, { name: 'db', port: 5432 }], 'name')\n  // → ['api', 'db']\n\n  pluck([{ name: 'api', port: 8080 }], 'port')\n  // → [8080]",
+      "whyMatters": "Extracting a single field from an array of service objects, log entries, or config records is a very common scripting pattern.",
+      "hints": [
+        "K extends keyof T ensures the key actually exists on T",
+        "T[K] is the type of the value at key K on object T",
+        "Use Array.map to implement it"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

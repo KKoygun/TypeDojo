@@ -1,0 +1,123 @@
+{
+  "id": "11-classes",
+  "title": "Classes & OOP",
+  "description": "Access modifiers, abstract classes, implements, static members, and generic classes.",
+  "prerequisites": ["10-engineering-patterns"],
+  "challenges": [
+    {
+      "id": "classes-01",
+      "title": "Access modifiers",
+      "topic": "11-classes",
+      "level": 1,
+      "type": "terminal",
+      "description": "What is the difference between `private` and `protected` in TypeScript?\n\n  class Base {\n    private secret = 'hidden'\n    protected shared = 'visible to subclasses'\n  }\n\n  class Child extends Base {\n    reveal() { return this.shared }  // ← does this work?\n  }",
+      "whyMatters": "Access modifiers appear in every OOP-style software engineering tool — loggers, HTTP clients, metric collectors. Knowing what's accessible where prevents subtle bugs when extending classes.",
+      "hints": ["private is only accessible in the class it's declared in; protected extends to subclasses"],
+      "choices": [
+        { "label": "private and protected are identical in TypeScript", "correct": false },
+        { "label": "private is class-only; protected is accessible in subclasses — so this.shared works in Child", "correct": true },
+        { "label": "protected is accessible everywhere; private is not", "correct": false },
+        { "label": "Both are runtime-enforced and throw if accessed incorrectly", "correct": false }
+      ]
+    },
+    {
+      "id": "classes-02",
+      "title": "readonly in classes",
+      "topic": "11-classes",
+      "level": 1,
+      "type": "terminal",
+      "description": "What does `readonly` do on a class property, and when can it be set?\n\n  class Service {\n    readonly id: string\n    constructor(id: string) { this.id = id }\n  }\n\n  const s = new Service('abc')\n  s.id = 'xyz'  // ← what happens?",
+      "whyMatters": "readonly on class properties is how you model immutable identifiers — service IDs, resource ARNs, connection strings that must not change after construction.",
+      "hints": ["readonly can be set in the constructor but nowhere else"],
+      "choices": [
+        { "label": "Works fine — readonly only prevents deletion", "correct": false },
+        { "label": "Compile error: cannot assign to 'id' because it is a read-only property", "correct": true },
+        { "label": "Runtime error only — TypeScript allows it but Node throws", "correct": false },
+        { "label": "Works because s is a const — readonly only applies to let variables", "correct": false }
+      ]
+    },
+    {
+      "id": "classes-03",
+      "title": "implements vs extends",
+      "topic": "11-classes",
+      "level": 2,
+      "type": "terminal",
+      "description": "What is the difference?\n\n  interface Logger { log(msg: string): void }\n  class Base { start() { return true } }\n\n  class App extends Base implements Logger {\n    log(msg: string) { console.log(msg) }\n  }",
+      "whyMatters": "implements is how you enforce a contract on a class without inheriting implementation — the AIProvider adapter pattern in this very repo uses it.",
+      "hints": ["extends inherits implementation; implements only enforces the shape at compile time"],
+      "choices": [
+        { "label": "They are identical — both inherit methods", "correct": false },
+        { "label": "extends inherits implementation from Base; implements only enforces that App satisfies the Logger shape", "correct": true },
+        { "label": "implements inherits implementation; extends only checks the shape", "correct": false },
+        { "label": "A class can only use one — you cannot combine extends and implements", "correct": false }
+      ]
+    },
+    {
+      "id": "classes-04",
+      "title": "Write a class with access modifiers",
+      "topic": "11-classes",
+      "level": 2,
+      "type": "file",
+      "description": "Write a `ConnectionPool` class:\n\n- `private readonly maxSize: number` — set in constructor\n- `private connections: string[]` — starts empty\n- `public add(conn: string): void` — adds if under maxSize, throws Error `'Pool is full'` if at capacity\n- `public remove(conn: string): void` — removes if exists, throws Error `'Connection not found'` if missing\n- `public get size(): number` — returns current count (getter)\n- `public get available(): number` — returns maxSize - size\n- `public list(): readonly string[]` — returns connections as readonly",
+      "whyMatters": "Connection pools are fundamental software engineering infrastructure — database pools, HTTP client pools, gRPC channel pools all follow this exact pattern.",
+      "hints": [
+        "Use get size() { return this.connections.length }",
+        "readonly string[] prevents callers from mutating the internal array",
+        "throw new Error('Pool is full') in add when this.connections.length >= this.maxSize"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "classes-05",
+      "title": "Abstract classes",
+      "topic": "11-classes",
+      "level": 3,
+      "type": "terminal",
+      "description": "What is an abstract class and what makes it different from an interface?\n\n  abstract class BaseChecker {\n    abstract check(): Promise<boolean>\n    async run(): Promise<string> {\n      const ok = await this.check()\n      return ok ? 'healthy' : 'unhealthy'\n    }\n  }",
+      "whyMatters": "Abstract classes let you share implementation (like the run() method) while enforcing that subclasses provide the specific logic — perfect for a suite of health checkers with shared retry/logging behavior.",
+      "hints": ["Abstract classes can have concrete methods; interfaces cannot"],
+      "choices": [
+        { "label": "Abstract classes and interfaces are identical at runtime", "correct": false },
+        { "label": "Abstract classes can contain concrete implemented methods and cannot be instantiated directly — interfaces have no implementation", "correct": true },
+        { "label": "Abstract classes can be instantiated; interfaces cannot", "correct": false },
+        { "label": "Abstract classes compile to JavaScript classes; interfaces also compile to JavaScript interfaces", "correct": false }
+      ]
+    },
+    {
+      "id": "classes-06",
+      "title": "Abstract base class + implementations",
+      "topic": "11-classes",
+      "level": 3,
+      "type": "file",
+      "description": "Write an abstract class `BaseHealthChecker`:\n- `abstract readonly name: string`\n- `abstract ping(): Promise<boolean>`\n- `async check(): Promise<{ name: string; ok: boolean; latencyMs: number }>` — calls ping(), measures latency, catches errors (ok=false on throw)\n\nThen write two concrete implementations:\n- `HttpChecker(url: string)` — name is the url, ping() resolves true (simulate with `Promise.resolve(true)`)\n- `TcpChecker(host: string, port: number)` — name is `host:port`, ping() resolves true",
+      "whyMatters": "This is the exact pattern for building a suite of heterogeneous health checkers — each checker knows how to ping its own service, but the timing and error handling are shared.",
+      "hints": [
+        "abstract readonly name: string — each subclass sets it as a class property",
+        "In check(), use Date.now() before and after ping()",
+        "Wrap ping() in try/catch — on Error, return ok: false"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "classes-07",
+      "title": "Generic class — typed repository",
+      "topic": "11-classes",
+      "level": 4,
+      "type": "file",
+      "description": "Write a generic `Repository<T extends { id: string }>` class:\n\n- `private store: Map<string, T>` — internal storage\n- `save(entity: T): void` — stores by entity.id\n- `findById(id: string): T | undefined`\n- `findAll(): T[]`\n- `delete(id: string): boolean` — returns true if existed\n- `count(): number`\n\nThe class must work for any entity type that has an `id: string` field.",
+      "whyMatters": "In-memory repositories are used for caching, test doubles, and config stores in production tooling. The generic constraint ensures type safety without knowing the entity shape in advance.",
+      "hints": [
+        "class Repository<T extends { id: string }>",
+        "Map<string, T> for the store",
+        "findAll(): T[] — return Array.from(this.store.values())"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "id": "01-types",
+  "title": "The Type System",
+  "description": "TypeScript's core — annotating values, understanding inference, and thinking in types.",
+  "prerequisites": [],
+  "challenges": [
+    {
+      "id": "types-01",
+      "title": "What is a type annotation?",
+      "topic": "01-types",
+      "level": 1,
+      "type": "terminal",
+      "description": "Which of the following correctly annotates a variable as a string in TypeScript?\n\n  A)  let name = string\n  B)  let name: string = \"Alice\"\n  C)  let name: \"Alice\"\n  D)  string name = \"Alice\"",
+      "whyMatters": "Every config value, env var, and CLI flag you read at runtime needs a type — annotations are how you tell TypeScript what to expect.",
+      "hints": ["The syntax is: variableName: type"],
+      "choices": [
+        { "label": "A)  let name = string", "correct": false },
+        { "label": "B)  let name: string = \"Alice\"", "correct": true },
+        { "label": "C)  let name: \"Alice\"", "correct": false },
+        { "label": "D)  string name = \"Alice\"", "correct": false }
+      ]
+    },
+    {
+      "id": "types-02",
+      "title": "Type inference",
+      "topic": "01-types",
+      "level": 1,
+      "type": "terminal",
+      "description": "What type does TypeScript infer for `count` here?\n\n  const count = 42",
+      "whyMatters": "TypeScript infers most types — knowing when you need to annotate vs. when inference handles it keeps your code clean.",
+      "hints": ["TypeScript infers the type from the value assigned"],
+      "choices": [
+        { "label": "any", "correct": false },
+        { "label": "number", "correct": false },
+        { "label": "42 (literal type)", "correct": true },
+        { "label": "int", "correct": false }
+      ]
+    },
+    {
+      "id": "types-03",
+      "title": "Union types",
+      "topic": "01-types",
+      "level": 2,
+      "type": "terminal",
+      "description": "Which correctly declares a variable that can be either a string or a number?\n\n  A)  let id: string & number\n  B)  let id: string | number\n  C)  let id: (string, number)\n  D)  let id: string or number",
+      "whyMatters": "IDs, ports, and config values are often string or number depending on source — union types model this exactly.",
+      "hints": ["The pipe | means 'or' in TypeScript types"],
+      "choices": [
+        { "label": "A)  let id: string & number", "correct": false },
+        { "label": "B)  let id: string | number", "correct": true },
+        { "label": "C)  let id: (string, number)", "correct": false },
+        { "label": "D)  let id: string or number", "correct": false }
+      ]
+    },
+    {
+      "id": "types-04",
+      "title": "Annotate a function",
+      "topic": "01-types",
+      "level": 2,
+      "type": "file",
+      "description": "Write a function `formatPort` that accepts a port number and returns a string in the format `:8080`.\n\nAnnotate the parameter and return type explicitly.",
+      "whyMatters": "You'll write functions like this constantly — formatting hostnames, ports, URLs for health checks and config generation.",
+      "hints": [
+        "Parameter annotation: (port: number)",
+        "Return type goes after the closing paren: ): string"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "types-05",
+      "title": "Narrowing with typeof",
+      "topic": "01-types",
+      "level": 3,
+      "type": "terminal",
+      "description": "Given this function:\n\n  function print(value: string | number) {\n    if (typeof value === \"string\") {\n      console.log(value.toUpperCase())\n    } else {\n      console.log(value.toFixed(2))\n    }\n  }\n\nWhat happens inside the `else` branch — what type is `value`?",
+      "whyMatters": "Narrowing is how you safely handle values from external sources that could be multiple types.",
+      "hints": ["TypeScript narrows the type based on the typeof check"],
+      "choices": [
+        { "label": "string | number (unchanged)", "correct": false },
+        { "label": "number", "correct": true },
+        { "label": "any", "correct": false },
+        { "label": "unknown", "correct": false }
+      ]
+    },
+    {
+      "id": "types-06",
+      "title": "Write a union type narrowing function",
+      "topic": "01-types",
+      "level": 3,
+      "type": "file",
+      "description": "Write a function `stringify` that accepts `string | number | boolean` and always returns a string.\n\n- If it's a string, return it as-is\n- If it's a number, return it with 2 decimal places (e.g. 3 → \"3.00\")\n- If it's a boolean, return \"yes\" or \"no\"",
+      "whyMatters": "Serializing heterogeneous config values to strings is a daily software engineering task — log formatters, env writers, YAML generators.",
+      "hints": [
+        "Use typeof to narrow each case",
+        "toFixed(2) works on numbers",
+        "Consider using if/else if/else"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}
