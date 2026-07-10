@@ -1,0 +1,178 @@
+{
+  "id": "14-type-guards",
+  "title": "Type Guards & Declaration Merging",
+  "description": "User-defined type guards, assertion functions, module augmentation, and interface merging.",
+  "challenges": [
+    {
+      "id": "guards-01",
+      "title": "User-defined type guards",
+      "topic": "14-type-guards",
+      "level": 1,
+      "type": "terminal",
+      "description": "What does `value is Config` mean in the return type of this function?\n\n  function isConfig(value: unknown): value is Config {\n    return typeof value === 'object' && value !== null && 'host' in value\n  }",
+      "whyMatters": "User-defined type guards are how you tell TypeScript what your runtime check means for the type system — without them, narrowing stays as unknown even when you've validated the shape.",
+      "hints": [
+        "value is Config is a type predicate — it tells TypeScript to narrow value to Config in the true branch of callers"
+      ],
+      "choices": [
+        {
+          "label": "It means the function always returns true for Config values",
+          "correct": false
+        },
+        {
+          "label": "It is a type predicate — if the function returns true, TypeScript narrows value to Config at the call site",
+          "correct": true
+        },
+        {
+          "label": "It is equivalent to a type assertion (value as Config)",
+          "correct": false
+        },
+        {
+          "label": "It throws if value is not a Config",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "guards-02",
+      "title": "Assertion functions",
+      "topic": "14-type-guards",
+      "level": 2,
+      "type": "terminal",
+      "description": "What does `asserts value is string` do differently from a regular type guard?\n\n  function assertString(value: unknown): asserts value is string {\n    if (typeof value !== 'string') throw new Error('Expected string')\n  }\n\n  function process(val: unknown) {\n    assertString(val)\n    console.log(val.toUpperCase())  // ← what type is val here?\n  }",
+      "whyMatters": "Assertion functions are used in config validation and startup checks — call once at boot, and TypeScript narrows the type for the rest of the function without requiring an if statement.",
+      "hints": [
+        "asserts narrows permanently after the call — no if/else needed"
+      ],
+      "choices": [
+        {
+          "label": "val is still unknown — TypeScript doesn't trust assertion functions",
+          "correct": false
+        },
+        {
+          "label": "val is string — the asserts return type tells TypeScript that if the function returns (doesn't throw), the value is narrowed",
+          "correct": true
+        },
+        {
+          "label": "val is string | unknown — the assertion adds a type, not replaces",
+          "correct": false
+        },
+        {
+          "label": "Compile error — you cannot call toUpperCase on unknown",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "guards-03",
+      "title": "Write type guards for a union",
+      "topic": "14-type-guards",
+      "level": 2,
+      "type": "file",
+      "description": "Given these types:\n\n  type Circle = { kind: 'circle'; radius: number }\n  type Rectangle = { kind: 'rectangle'; width: number; height: number }\n  type Triangle = { kind: 'triangle'; base: number; height: number }\n  type Shape = Circle | Rectangle | Triangle\n\nWrite:\n- `isCircle(s: unknown): s is Circle` — type guard\n- `isRectangle(s: unknown): s is Rectangle` — type guard\n- `area(shape: Shape): number` — returns area for each shape\n  - circle: π * r²\n  - rectangle: width * height\n  - triangle: 0.5 * base * height\n- `assertShape(val: unknown): asserts val is Shape` — throws if val is not a valid Shape",
+      "whyMatters": "Shape-style discriminated unions appear in typed event systems, message queues, and command parsers. Type guards and assertion functions are how you safely enter those systems.",
+      "hints": [
+        "Check that s is a non-null object first, then check the kind discriminant — casting to any is one safe way to access the property before the type is narrowed",
+        "area: switch on shape.kind — TypeScript narrows each case",
+        "assertShape: check that val has a valid kind property"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "guards-04",
+      "title": "Declaration merging — interfaces",
+      "topic": "14-type-guards",
+      "level": 3,
+      "type": "terminal",
+      "description": "What does TypeScript do when you declare the same interface twice?\n\n  interface Config { host: string }\n  interface Config { port: number }\n\n  const c: Config = { host: 'localhost', port: 8080 }",
+      "whyMatters": "Declaration merging is how you extend third-party types without forking them — adding fields to Express Request, augmenting process.env types, extending library interfaces.",
+      "hints": [
+        "TypeScript merges multiple declarations of the same interface into one combined type"
+      ],
+      "choices": [
+        {
+          "label": "Compile error — you cannot declare the same interface twice",
+          "correct": false
+        },
+        {
+          "label": "The second declaration overwrites the first",
+          "correct": false
+        },
+        {
+          "label": "Both declarations are merged — Config has both host and port, so both are required",
+          "correct": true
+        },
+        {
+          "label": "The two declarations create a union type",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "guards-05",
+      "title": "Module augmentation",
+      "topic": "14-type-guards",
+      "level": 3,
+      "type": "file",
+      "description": "Augment the `process.env` type to add typed fields for your app's required env vars.\n\nIn `solution.ts`, use module augmentation to add these to `NodeJS.ProcessEnv`:\n- `APP_ENV?: string`\n- `LOG_LEVEL?: string`\n- `PORT?: string`\n- `DB_URL?: string`\n\nThen write a function `loadAppEnv(): { appEnv: string; logLevel: string; port: number; dbUrl: string }` that reads these fields with defaults:\n- APP_ENV defaults to `'development'`\n- LOG_LEVEL defaults to `'info'`\n- PORT defaults to `3000` (parse as int)\n- DB_URL throws if missing: `'Missing DB_URL'`",
+      "whyMatters": "Augmenting ProcessEnv gives you autocomplete and type checking on process.env — one of the most impactful quick wins in any Node.js production codebase.",
+      "hints": [
+        "Module augmentation for global Node types requires nesting: declare global, then a NodeJS namespace, then the ProcessEnv interface — add your fields with optional markers and string types",
+        "export {} at the bottom makes the file a module (required for global augmentation)",
+        "Parse PORT as an integer using base 10 — fall back to the string '3000' before parsing if the env var is not set"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "guards-06",
+      "title": "Narrowing with in and instanceof",
+      "topic": "14-type-guards",
+      "level": 3,
+      "type": "terminal",
+      "description": "Which narrowing technique is correct for each case?\n\n  // Case 1: discriminated union\n  type Event = { type: 'click'; x: number } | { type: 'key'; key: string }\n\n  // Case 2: class hierarchy\n  class AppError extends Error {}\n  class NetworkError extends AppError { statusCode = 503 }\n\n  function handle(e: AppError) { /* want to access statusCode */ }",
+      "whyMatters": "Knowing which narrowing tool fits which situation prevents unnecessary type casts and keeps code readable.",
+      "hints": [
+        "'in' narrows plain objects by property; 'instanceof' narrows class instances"
+      ],
+      "choices": [
+        {
+          "label": "Use instanceof for both",
+          "correct": false
+        },
+        {
+          "label": "Use 'in' for the discriminated union (check 'type'); use instanceof for the class hierarchy",
+          "correct": false
+        },
+        {
+          "label": "Use the 'type' property directly for the union; use instanceof NetworkError for the class",
+          "correct": true
+        },
+        {
+          "label": "Use typeof for both",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "guards-07",
+      "title": "Write assertion functions for startup validation",
+      "topic": "14-type-guards",
+      "level": 4,
+      "type": "file",
+      "description": "Write a startup validation system using assertion functions:\n\n  interface AppConfig { host: string; port: number; workers: number; logLevel: 'debug' | 'info' | 'warn' | 'error' }\n\nWrite:\n- `assertDefined<T>(val: T | undefined | null, name: string): asserts val is T` — generic assertion\n- `assertPort(val: unknown): asserts val is number` — must be integer 1–65535\n- `assertLogLevel(val: unknown): asserts val is AppConfig['logLevel']` — must be valid log level\n- `assertConfig(raw: unknown): asserts raw is AppConfig` — validates the full shape using the above\n\nAll throw descriptive errors on failure.",
+      "whyMatters": "Assertion functions at startup are the most ergonomic way to validate config — call once, then use the config everywhere with full type safety for the rest of the process lifetime.",
+      "hints": [
+        "asserts val is T means: if this function returns (doesn't throw), val is T",
+        "assertConfig: cast to Record<string, unknown>, then call assertDefined, assertPort etc. on each field",
+        "A valid port must be an integer and fall within the valid port range — check all three conditions and throw a descriptive error if any fails"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

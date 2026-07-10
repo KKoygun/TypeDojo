@@ -1,0 +1,195 @@
+{
+  "id": "19-structural-typing",
+  "title": "Structural Typing, satisfies & Index Signatures",
+  "description": "How TypeScript decides type compatibility, excess property checks, index signatures, and the satisfies operator.",
+  "challenges": [
+    {
+      "id": "structural-01",
+      "title": "Structural vs nominal typing",
+      "topic": "19-structural-typing",
+      "level": 1,
+      "type": "terminal",
+      "description": "Why does this compile in TypeScript when it would fail in Java or C#?\n\n  interface Point { x: number; y: number }\n  interface Coordinate { x: number; y: number }\n\n  function drawPoint(p: Point): void {}\n\n  const coord: Coordinate = { x: 1, y: 2 }\n  drawPoint(coord)  // ← works?",
+      "whyMatters": "Structural typing is the single most important thing to understand about TypeScript's type system. It determines when types are compatible, which shapes every design decision you make.",
+      "hints": [
+        "TypeScript checks shape, not name — if it has the right properties, it's compatible"
+      ],
+      "choices": [
+        {
+          "label": "Compile error — Point and Coordinate are different named types",
+          "correct": false
+        },
+        {
+          "label": "Works — TypeScript is structurally typed. Coordinate has the same shape as Point so it is compatible, regardless of the name",
+          "correct": true
+        },
+        {
+          "label": "Works only because both are interfaces, not classes",
+          "correct": false
+        },
+        {
+          "label": "Works at runtime but TypeScript shows a warning",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "structural-02",
+      "title": "Excess property checks",
+      "topic": "19-structural-typing",
+      "level": 1,
+      "type": "terminal",
+      "description": "Why does one of these fail but the other doesn't?\n\n  interface Config { host: string; port: number }\n\n  // Case A:\n  const c: Config = { host: 'localhost', port: 8080, extra: true }  // ← ?\n\n  // Case B:\n  const obj = { host: 'localhost', port: 8080, extra: true }\n  const c2: Config = obj  // ← ?",
+      "whyMatters": "Excess property checks only fire on fresh object literals — understanding this prevents confusion when passing variables works but inline literals don't.",
+      "hints": [
+        "Excess property checks only apply to object literals assigned directly to a typed variable — not through an intermediate variable"
+      ],
+      "choices": [
+        {
+          "label": "Both fail — extra properties are never allowed",
+          "correct": false
+        },
+        {
+          "label": "Both pass — extra properties are always fine structurally",
+          "correct": false
+        },
+        {
+          "label": "Case A fails (excess property check on fresh literal) · Case B passes (variable assignment uses structural compatibility, no freshness check)",
+          "correct": true
+        },
+        {
+          "label": "Case A passes · Case B fails",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "structural-03",
+      "title": "Write types that demonstrate structural compatibility",
+      "topic": "19-structural-typing",
+      "level": 2,
+      "type": "file",
+      "description": "Demonstrate structural typing rules:\n\n1. Write `isCompatible<T>(value: unknown, check: (v: unknown) => v is T): value is T` — a generic structural check wrapper\n\n2. Write three interfaces:\n   - `Animal` with `name: string` and `sound(): string`\n   - `Pet` with `name: string`, `sound(): string`, and `owner: string`\n   - `Named` with just `name: string`\n\n3. Write `greet(a: Named): string` — returns `'Hello, {name}!'`\n\n4. Write `makeSound(a: Animal): string` — returns `'{name} says {sound()}'`\n\nDemonstrate by creating a `Pet` object and passing it to both functions — show that structural compatibility allows this without explicit casting.",
+      "whyMatters": "Structural typing enables duck-typed interfaces — your service client, your test double, and your mock all satisfy the same interface without declaring it.",
+      "hints": [
+        "Pet is structurally compatible with both Animal and Named — it has all their properties and more",
+        "No casting needed — TypeScript sees the shape automatically",
+        "isCompatible is a generic wrapper — it delegates to the check function you receive; return the check result directly"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "structural-04",
+      "title": "Index signatures",
+      "topic": "19-structural-typing",
+      "level": 2,
+      "type": "terminal",
+      "description": "What constraint does an index signature impose, and why does this cause a compile error?\n\n  interface StringMap {\n    [key: string]: string\n    count: number  // ← error?\n  }",
+      "whyMatters": "Index signature constraints trip up everyone the first time. Knowing the rule — all named properties must be assignable to the index signature's value type — prevents mysterious errors when mixing typed and dynamic properties.",
+      "hints": [
+        "When you have [key: string]: string, every property including named ones must be string"
+      ],
+      "choices": [
+        {
+          "label": "No error — named properties are exempt from the index signature constraint",
+          "correct": false
+        },
+        {
+          "label": "Error: 'count' of type 'number' is not assignable to string index type 'string' — all named properties must match the index signature value type",
+          "correct": true
+        },
+        {
+          "label": "Error: you cannot combine an index signature with named properties",
+          "correct": false
+        },
+        {
+          "label": "No error at declaration, but error when you access .count",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "structural-05",
+      "title": "Write types with index signatures",
+      "topic": "19-structural-typing",
+      "level": 3,
+      "type": "file",
+      "description": "Write these index signature patterns:\n\n1. `interface MetricsMap` — string keys, number values, PLUS a required named `timestamp: number` property. Fix the conflict so both work.\n\n2. `interface FlexibleConfig` — string keys mapping to `string | number | boolean`, with named required fields `name: string` and `version: number`\n\n3. Write `mergeConfigs(base: FlexibleConfig, overrides: Partial<FlexibleConfig>): FlexibleConfig` — merges override into base, returning new object\n\n4. Write `getMetric(map: MetricsMap, key: string): number | undefined` — safely reads a value, returns undefined for missing keys",
+      "whyMatters": "Mixed index + named property interfaces are common in config objects and metric maps — things that have known required fields but also accept arbitrary extra data.",
+      "hints": [
+        "To fix the MetricsMap conflict: make the index value string | number, then timestamp: number is compatible",
+        "FlexibleConfig: [key: string]: string | number | boolean — name and version are both assignable to that union",
+        "Spread both objects into a new FlexibleConfig — the second spread wins on key conflicts; spreading a Partial does not inject undefined for absent keys"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "structural-06",
+      "title": "The satisfies operator",
+      "topic": "19-structural-typing",
+      "level": 3,
+      "type": "terminal",
+      "description": "What is the difference between annotation and `satisfies`?\n\n  // Annotation — widened\n  const colors1: Record<string, string> = { red: '#ff0000', blue: '#0000ff' }\n  colors1.red  // type: string\n\n  // satisfies — narrow preserved\n  const colors2 = { red: '#ff0000', blue: '#0000ff' } satisfies Record<string, string>\n  colors2.red  // type: ?",
+      "whyMatters": "satisfies validates a value against a type without losing the literal or narrow type. Used for typed config objects where you want both validation AND autocomplete on specific keys.",
+      "hints": [
+        "satisfies checks the shape but keeps the inferred type — annotation widens to the declared type"
+      ],
+      "choices": [
+        {
+          "label": "colors2.red is string — same as annotation",
+          "correct": false
+        },
+        {
+          "label": "colors2.red is '#ff0000' — satisfies validates the shape but preserves the literal type inference",
+          "correct": true
+        },
+        {
+          "label": "colors2.red is string | undefined — satisfies adds undefined safety",
+          "correct": false
+        },
+        {
+          "label": "Compile error — satisfies cannot be used with Record types",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "structural-07",
+      "title": "Use satisfies for typed config",
+      "topic": "19-structural-typing",
+      "level": 3,
+      "type": "file",
+      "description": "Use `satisfies` to build validated configs that preserve narrow types:\n\n1. Define `RouteConfig` with index signature: `{ [path: string]: { method: 'GET' | 'POST' | 'PUT' | 'DELETE'; handler: string } }`\n\n2. Create `routes` using `satisfies RouteConfig` — include at least `/health`, `/api/users`, `/api/users/:id`. Each with appropriate methods and handler names.\n\n3. Write `getHandler(routes: RouteConfig, path: string): string | undefined`\n\n4. Write `listRoutes(routes: RouteConfig): string[]` — returns `['GET /health', 'POST /api/users', ...]`\n\nThe key: with `satisfies`, accessing `routes['/health'].method` should give you the literal type (e.g. `'GET'`), not just `'GET' | 'POST' | 'PUT' | 'DELETE'`.",
+      "whyMatters": "Route config tables defined with satisfies give you autocomplete on known routes and type-checked methods — without losing the flexibility of a dynamic record.",
+      "hints": [
+        "const routes = { '/health': { method: 'GET', handler: 'healthHandler' }, ... } satisfies RouteConfig",
+        "Access the route entry by path and safely access its handler property — if the path is not in the map the result should be undefined",
+        "Iterate over the route entries and for each one combine the HTTP method and path into a single string with a space separator"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "structural-08",
+      "title": "Type compatibility in practice",
+      "topic": "19-structural-typing",
+      "level": 4,
+      "type": "file",
+      "description": "Write a function compatibility demonstration:\n\n1. `type Logger = { log(msg: string): void }`\n   `type DetailedLogger = { log(msg: string, level: string): void }`\n\n   Write `acceptsLogger(l: Logger): void` and show which of these is assignable to Logger:\n   - `{ log(msg: string): void }` — basic\n   - `{ log(msg: string, level?: string): void }` — optional extra param  \n   - `{ log(msg: string, level: string): void }` — required extra param\n   - `{ log(msg: string): void; warn(msg: string): void }` — extra method\n\n2. Write a `compose<T, U, V>(f: (x: T) => U, g: (x: U) => V): (x: T) => V` and show structural typing making it work with compatible (not identical) function types.\n\n3. Export a `results` object documenting which assignments are valid with comments explaining why.",
+      "whyMatters": "Function parameter compatibility — especially the optional param rule — is a common source of TypeScript confusion. Understanding it means you stop fighting the compiler and start working with it.",
+      "hints": [
+        "Functions with fewer required params are assignable to function types with more — not the reverse",
+        "Extra optional params: assignable. Extra required params: not assignable.",
+        "Extra methods on an object: always fine (structural supertype is assignable to subtype)"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

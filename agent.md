@@ -15,10 +15,11 @@ Examples:
 - PASS Clean use of Promise.all with proper typed resolution.
 
 ## What counts as FAIL
-- Hardcoded return values that bypass the actual logic
+- Hardcoded return values that bypass the actual logic — e.g. `return "http://localhost:8080"` as a string literal. A template literal like `` return `http://${config.host}:${config.port}` `` is NOT hardcoding, it is dynamic and correct.
 - Using `any` when the challenge asks for typed code
 - Using a different language construct than what the challenge targets
 - Logic that only works for the test cases, not generally
+- Missing explicit type annotations when the challenge description says "annotate", "add a type annotation", "explicit type", or "return type" — TypeScript may infer the type correctly, but if the challenge requires writing the annotation, relying on inference is a FAIL. Be specific: say which annotation is missing.
 
 ## What counts as PASS
 - Correct use of the TypeScript feature being taught

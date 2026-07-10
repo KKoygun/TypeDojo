@@ -1,0 +1,168 @@
+{
+  "id": "05-async",
+  "title": "Async & Promises",
+  "description": "Type asynchronous operations with Promise<T>, async/await, and parallel execution patterns.",
+  "challenges": [
+    {
+      "id": "async-01",
+      "title": "What does async return?",
+      "topic": "05-async",
+      "level": 1,
+      "type": "terminal",
+      "description": "What is the return type of this function?\n\n  async function greet(): Promise<string> {\n    return \"hello\"\n  }\n\n  const result = greet()\n\n  A)  string\n  B)  Promise<string>\n  C)  undefined\n  D)  void",
+      "whyMatters": "Knowing that async functions always return a Promise — even when you write `return \"hello\"` — is the most important mental model for async TypeScript.",
+      "hints": [
+        "async functions automatically wrap the return value in a Promise"
+      ],
+      "choices": [
+        {
+          "label": "A)  string",
+          "correct": false
+        },
+        {
+          "label": "B)  Promise<string>",
+          "correct": true
+        },
+        {
+          "label": "C)  undefined",
+          "correct": false
+        },
+        {
+          "label": "D)  void",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "async-02",
+      "title": "First async function",
+      "topic": "05-async",
+      "level": 1,
+      "type": "file",
+      "description": "Write two async functions:\n\n`delay(ms: number): Promise<void>` — resolves after `ms` milliseconds using `setTimeout`.\n\n`greetAfterDelay(name: string, ms: number): Promise<string>` — waits for the delay, then returns `\"Hello, name!\"`.",
+      "whyMatters": "Every async chain starts with a promise-wrapped primitive like setTimeout — understanding how to create and consume them is the foundation.",
+      "hints": [
+        "Wrap the callback-based setTimeout in a Promise constructor — the resolve function should be called when the timer fires",
+        "Use await inside greetAfterDelay: await delay(ms)"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "async-03",
+      "title": "Typed error handling",
+      "topic": "05-async",
+      "level": 1,
+      "type": "file",
+      "description": "Write `safeDivide(a: number, b: number): Promise<number>` that:\n- Rejects with `new Error(\"Cannot divide by zero\")` if b is 0\n- Otherwise resolves with a / b\n\nThen write `trySafeDivide(a: number, b: number): Promise<string>` that:\n- Returns `\"Result: X\"` on success\n- Returns `\"Error: message\"` on failure (caught)",
+      "whyMatters": "try/catch with async/await is the standard error handling pattern — you must handle rejections explicitly or they become uncaught exceptions.",
+      "hints": [
+        "Use throw inside an async function to reject: throw new Error(...)",
+        "Catch errors with try { ... } catch (err) { if (err instanceof Error) ... }"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "async-04",
+      "title": "Chaining promises",
+      "topic": "05-async",
+      "level": 2,
+      "type": "file",
+      "description": "Write a pipeline of three async functions:\n\n`fetchNumber(): Promise<number>` — resolves with 42.\n\n`doubleAsync(n: number): Promise<number>` — resolves with n * 2.\n\n`pipeline(): Promise<string>` — calls fetchNumber, passes result to doubleAsync, returns `\"Result: 84\"`.",
+      "whyMatters": "Chaining async operations is the core pattern in any multi-step flow — fetch data, transform it, format it, return it.",
+      "hints": [
+        "fetchNumber and doubleAsync each resolve with a single hard-coded value — pipeline chains them: await each result in order and pass it to the next call",
+        "In pipeline, await each async call in sequence — store the result and pass it as the argument to the next function"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "async-05",
+      "title": "Promise.all — parallel",
+      "topic": "05-async",
+      "level": 2,
+      "type": "file",
+      "description": "Write three async functions that each resolve after a short delay:\n- `fetchName(): Promise<string>` → resolves with `\"Alice\"`\n- `fetchAge(): Promise<number>` → resolves with `30`\n- `fetchRole(): Promise<string>` → resolves with `\"admin\"`\n\nThen write `fetchAll(): Promise<string>` that runs all three in parallel and returns `\"Alice, 30, admin\"`.",
+      "whyMatters": "Promise.all is critical for performance — running independent async operations in parallel instead of sequentially can cut total time by 2-3x.",
+      "hints": [
+        "Pass all three function calls into Promise.all as an array — you can destructure the resolved tuple to get each typed value separately",
+        "Join the three resolved values with comma-space separators in a template literal"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "async-06",
+      "title": "Promise.allSettled — tolerant parallel",
+      "topic": "05-async",
+      "level": 2,
+      "type": "file",
+      "description": "Write `checkAll(urls: string[]): Promise<{ url: string; ok: boolean }[]>` that:\n- Calls `ping(url): Promise<boolean>` for each URL in parallel using `Promise.allSettled`\n- Returns results for ALL urls — even if some ping calls reject, mark those as ok: false\n\nProvide the mock: `ping(url)` resolves with `true` immediately.",
+      "whyMatters": "Promise.allSettled is the right tool when you can't let one failure cancel everything — health checks, fan-out requests, batch operations.",
+      "hints": [
+        "Map each URL to a ping call and pass the whole array to Promise.allSettled — every URL gets a result regardless of success or failure",
+        "Each settled result has a status field — check whether it is 'fulfilled' to decide whether to use its value or fall back to false"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "async-07",
+      "title": "Sequential vs parallel",
+      "topic": "05-async",
+      "level": 2,
+      "type": "file",
+      "description": "Write `processSequential(items: number[]): Promise<number[]>` that processes items one by one — each item is doubled by an async `processItem(n: number): Promise<number>` function.\n\nThen write `processParallel(items: number[]): Promise<number[]>` that processes all items at once using Promise.all.\n\nProvide processItem: it resolves with n * 2.",
+      "whyMatters": "Knowing when to use sequential vs parallel is a performance decision you'll make constantly — sequential for dependent operations, parallel for independent ones.",
+      "hints": [
+        "Sequential: use a for...of loop with await inside, push to a results array",
+        "For the parallel version, map each item to a processItem call — collect all the promises and resolve them at once"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "async-08",
+      "title": "AbortController",
+      "topic": "05-async",
+      "level": 3,
+      "type": "file",
+      "description": "Write `fetchWithTimeout(url: string, timeoutMs: number): Promise<string>` that:\n- Creates an AbortController\n- Sets a timeout that aborts the controller after `timeoutMs` ms\n- Calls a mock `get(url, signal)` with the abort signal\n- Clears the timeout if the fetch succeeds (use try/finally)\n- If aborted, re-throws the error naturally\n\nProvide the mock: `get(url, signal)` resolves with the url string immediately.",
+      "whyMatters": "AbortController is the standard cancellation mechanism in modern JS/TS — fetch, streams, and many APIs accept an AbortSignal.",
+      "hints": [
+        "const controller = new AbortController()",
+        "Set a timer that calls abort on the controller after the timeout duration — store the reference so you can cancel it in the finally block",
+        "Use try/finally to guarantee the timer is cancelled whether the fetch succeeds or throws — the finally block always runs"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "async-09",
+      "title": "Bring it together",
+      "topic": "05-async",
+      "level": 3,
+      "type": "file",
+      "description": "Write a typed data pipeline with error handling:\n\n`interface DataResult<T> { data: T | null; error: string | null; duration: number }`\n\n`withTiming<T>(fn: () => Promise<T>): Promise<DataResult<T>>` — runs fn, captures how long it took (Date.now()), returns a DataResult with either the data or the error message.\n\nThen write `runPipeline(items: number[]): Promise<DataResult<number[]>>` that doubles all items in parallel (use Promise.all) wrapped in withTiming.",
+      "whyMatters": "Combining parallel execution, timing, and typed error handling is the pattern behind every observability-aware service client you'll ever write.",
+      "hints": [
+        "const start = Date.now()",
+        "In the try block, await fn() and build a result object with the data, a null error, and the elapsed time since start",
+        "In the catch block, return null data — narrow the caught error to extract a string message, and include the elapsed time",
+        "runPipeline: wrap a Promise.all over the doubled items inside withTiming — pass an arrow function returning the Promise.all so withTiming can time the whole parallel operation"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "id": "10-runtime-tooling",
+  "title": "Runtime Tooling",
+  "description": "Validation, env parsing, CLI args, and config loading — where TypeScript meets real-world input.",
+  "challenges": [
+    {
+      "id": "runtime-01",
+      "title": "Why runtime validation matters",
+      "topic": "10-runtime-tooling",
+      "level": 1,
+      "type": "terminal",
+      "description": "TypeScript's type system is erased at runtime. Given this:\n\n  interface Config { host: string; port: number }\n  const config: Config = JSON.parse(process.env.CONFIG!)\n\nWhat problem does this create even though it compiles?",
+      "whyMatters": "Config loaded from env vars, files, or APIs is untyped at runtime. Type assertions on parsed JSON give you false confidence — the actual value might be completely wrong.",
+      "hints": [
+        "TypeScript types don't exist at runtime — JSON.parse returns any"
+      ],
+      "choices": [
+        {
+          "label": "No problem — TypeScript guarantees the shape at runtime",
+          "correct": false
+        },
+        {
+          "label": "JSON.parse returns any — if the env var is missing or malformed, you get runtime crashes with no helpful error",
+          "correct": true
+        },
+        {
+          "label": "process.env is typed so this is safe",
+          "correct": false
+        },
+        {
+          "label": "The cast to Config causes a runtime type check",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "runtime-02",
+      "title": "Manual runtime validation pattern",
+      "topic": "10-runtime-tooling",
+      "level": 2,
+      "type": "terminal",
+      "description": "Which of these is the correct pattern for a type guard that validates an unknown value as a Config?\n\n  A)  function isConfig(v: any): v is Config { return true }\n  B)  function isConfig(v: unknown): v is Config { return typeof v === 'object' && v !== null && 'host' in v && 'port' in v }\n  C)  function isConfig(v: unknown): Config { return v as Config }\n  D)  function isConfig(v: Config): boolean { return !!v }",
+      "whyMatters": "Type guards are how you narrow unknown input to a typed shape — the foundation of every config parser and API response validator.",
+      "hints": [
+        "v is Config in the return type tells TypeScript what the true branch means"
+      ],
+      "choices": [
+        {
+          "label": "A)  always returns true — accepts anything",
+          "correct": false
+        },
+        {
+          "label": "B)  checks the actual shape at runtime before asserting the type",
+          "correct": true
+        },
+        {
+          "label": "C)  casts without checking — unsafe",
+          "correct": false
+        },
+        {
+          "label": "D)  wrong parameter type — defeats the purpose",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "runtime-03",
+      "title": "Write a manual config validator",
+      "topic": "10-runtime-tooling",
+      "level": 2,
+      "type": "file",
+      "description": "Write a function `parseConfig(raw: unknown): AppConfig` where:\n\n  interface AppConfig { host: string; port: number; logLevel: 'debug' | 'info' | 'warn' | 'error'; workers?: number }\n\nIt should:\n- Throw a descriptive Error if host is missing or not a string\n- Throw if port is missing or not a number\n- Throw if logLevel is not one of the four valid values\n- Default workers to 1 if not provided\n- Return a valid AppConfig if all checks pass\n\nNo external libraries — pure TypeScript.",
+      "whyMatters": "This is the pattern behind every config loader you'll write before reaching for a validation library. Understanding it makes you a much better user of Zod/Yup/etc.",
+      "hints": [
+        "Cast raw to Record<string, unknown> after checking typeof raw === 'object'",
+        "Declare the allowed log levels as a const array with the as const assertion — this lets TypeScript infer exact literal types for membership checks",
+        "Check Array.includes after asserting the array type",
+        "Use Number.isFinite for safer number checks than typeof"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "runtime-04",
+      "title": "Env var parsing patterns",
+      "topic": "10-runtime-tooling",
+      "level": 3,
+      "type": "terminal",
+      "description": "What is wrong with this env var parsing?\n\n  const port: number = process.env.PORT\n\nAnd what is the correct way to parse PORT as a number with a default of 8080?",
+      "whyMatters": "process.env always returns string | undefined — never a number. Getting this wrong means your port is '8080' (a string) and address-in-use checks silently fail.",
+      "hints": [
+        "process.env values are always strings — parseInt or Number() is needed"
+      ],
+      "choices": [
+        {
+          "label": "It's fine — Node coerces env vars to the annotated type",
+          "correct": false
+        },
+        {
+          "label": "Type error: string | undefined is not assignable to number. Fix: const port = parseInt(process.env.PORT ?? '8080', 10)",
+          "correct": true
+        },
+        {
+          "label": "It works at runtime but TypeScript complains for no reason",
+          "correct": false
+        },
+        {
+          "label": "process.env.PORT returns a number if the value looks like one",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "runtime-05",
+      "title": "Write a typed env loader",
+      "topic": "10-runtime-tooling",
+      "level": 3,
+      "type": "file",
+      "description": "Write a function `getEnv` with this signature:\n\n  function getEnv(key: string, fallback?: string): string\n\nIf the env var is set, return it. If not and fallback is provided, return fallback. If neither, throw `Error: \"Missing env var: KEY\"`.\n\nThen write typed parsers built on top of getEnv:\n- `getEnvInt(key: string, fallback?: number): number` — parses as integer, throws if not a valid integer\n- `getEnvBool(key: string, fallback?: boolean): boolean` — 'true'/'1' → true, 'false'/'0' → false, throws otherwise\n- `getEnvEnum<T extends string>(key: string, values: T[], fallback?: T): T` — validates against allowed values",
+      "whyMatters": "This small library is something you'd write or copy into every new software engineering tool — typed env parsing that fails loudly at startup rather than silently at runtime.",
+      "hints": [
+        "getEnvInt: use parseInt(val, 10) and check Number.isNaN",
+        "Map specific string representations of true and false to their boolean equivalents — decide on the accepted strings for each and throw if neither group matches",
+        "Check whether the parsed string exists in the allowed values array — the cast is safe here because you validate at runtime before returning"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "runtime-06",
+      "title": "CLI argument typing",
+      "topic": "10-runtime-tooling",
+      "level": 4,
+      "type": "terminal",
+      "description": "Given a CLI tool called with:\n\n  node tool.js --host localhost --port 8080 --verbose\n\nWhat is the type of `process.argv` and what does it contain at index 0, 1, and 2?",
+      "whyMatters": "Understanding process.argv layout is required before using any arg parsing library — and occasionally you'll parse args manually for simple scripts.",
+      "hints": [
+        "process.argv is string[] — first two elements are node and the script path"
+      ],
+      "choices": [
+        {
+          "label": "string[] — [0]: node path, [1]: script path, [2]: '--host'",
+          "correct": true
+        },
+        {
+          "label": "string[] — [0]: '--host', [1]: 'localhost', [2]: '--port'",
+          "correct": false
+        },
+        {
+          "label": "Record<string, string> — already parsed as key/value",
+          "correct": false
+        },
+        {
+          "label": "unknown[] — varies by Node version",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "runtime-07",
+      "title": "Write a minimal CLI arg parser",
+      "topic": "10-runtime-tooling",
+      "level": 4,
+      "type": "file",
+      "description": "Write a function `parseArgs(argv: string[]): Record<string, string | boolean>` that parses a simple CLI arg format:\n\n- `--key value` → `{ key: 'value' }`\n- `--flag` (no value after, or next is another --key) → `{ flag: true }`\n- Ignore argv[0] and argv[1] (node + script path)\n\nExample:\n  parseArgs(['node', 'script.js', '--host', 'localhost', '--port', '8080', '--verbose'])\n  // → { host: 'localhost', port: '8080', verbose: true }",
+      "whyMatters": "You'll write or read exactly this function when building deployment scripts, runbooks, and internal CLI tools that don't need a full framework.",
+      "hints": [
+        "Slice argv from index 2",
+        "Iterate with a for loop, check if current starts with '--'",
+        "Peek at next element: if it exists and doesn't start with '--', it's the value; otherwise it's a boolean flag"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "id": "08-modules",
+  "title": "Modules & Tooling",
+  "description": "How TypeScript resolves modules, what tsconfig options actually do, and how to structure a real project.",
+  "challenges": [
+    {
+      "id": "modules-01",
+      "title": "ESM vs CommonJS",
+      "topic": "08-modules",
+      "level": 1,
+      "type": "terminal",
+      "description": "What is the key runtime difference between these two?\n\n  // CommonJS\n  const fs = require('fs')\n  module.exports = { readFile }\n\n  // ESM\n  import fs from 'fs'\n  export function readFile() {}",
+      "whyMatters": "You'll hit ESM/CJS interop issues constantly — mixing require() and import in the same codebase is a common source of mysterious runtime errors.",
+      "hints": [
+        "ESM is statically analyzed, CJS is dynamic — this affects tree-shaking and top-level await"
+      ],
+      "choices": [
+        {
+          "label": "No runtime difference — TypeScript compiles both to the same thing",
+          "correct": false
+        },
+        {
+          "label": "ESM is loaded statically at parse time; CJS is evaluated dynamically at runtime",
+          "correct": true
+        },
+        {
+          "label": "ESM only works in browsers; CJS only in Node",
+          "correct": false
+        },
+        {
+          "label": "CJS supports top-level await; ESM does not",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "modules-02",
+      "title": "What does strict: true enable?",
+      "topic": "08-modules",
+      "level": 1,
+      "type": "terminal",
+      "description": "Which of these is NOT enabled by `strict: true` in tsconfig?\n\n  A)  strictNullChecks — undefined is not assignable to string\n  B)  noImplicitAny — parameters must have explicit types\n  C)  noUnusedLocals — unused variables are errors\n  D)  strictFunctionTypes — function parameters are checked contravariantly",
+      "whyMatters": "Knowing exactly what strict enables helps you understand why code that worked before suddenly has errors — and which flag to add to tighten up a legacy codebase.",
+      "hints": [
+        "strict is a shorthand for several flags — but not all strictness flags are included"
+      ],
+      "choices": [
+        {
+          "label": "A)  strictNullChecks",
+          "correct": false
+        },
+        {
+          "label": "B)  noImplicitAny",
+          "correct": false
+        },
+        {
+          "label": "C)  noUnusedLocals",
+          "correct": true
+        },
+        {
+          "label": "D)  strictFunctionTypes",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "modules-03",
+      "title": "Write a barrel file",
+      "topic": "08-modules",
+      "level": 2,
+      "type": "file",
+      "description": "You have three modules in a `lib/` folder:\n- `lib/config.ts` — exports `loadConfig`, `ConfigError`\n- `lib/http.ts` — exports `fetchWithTimeout`, `HttpError`\n- `lib/logger.ts` — exports `log`, `LogLevel`\n\nWrite `lib/index.ts` (the barrel file) that re-exports everything from all three modules so consumers can do:\n\n  import { loadConfig, log, fetchWithTimeout } from './lib'\n\nThe modules themselves are provided — you only write the barrel.",
+      "whyMatters": "Barrel files are the standard way to expose a clean public API from a library or internal module — every production tooling package you'll write or consume uses them.",
+      "hints": [
+        "Named re-exports use the export keyword followed by identifiers in braces and a from clause — repeat this pattern for each of the three source modules",
+        "Or use export * from './config' to re-export everything"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "modules-04",
+      "title": "Declaration files",
+      "topic": "08-modules",
+      "level": 3,
+      "type": "terminal",
+      "description": "What is the purpose of a `.d.ts` file?\n\n  A)  It contains runtime JavaScript that runs alongside your TypeScript\n  B)  It describes the types of a module without containing any implementation\n  C)  It replaces tsconfig.json for large projects\n  D)  It is required for every TypeScript file you write",
+      "whyMatters": "Declaration files are how untyped npm packages get types — and how you add types to legacy JS scripts in your own infrastructure codebase.",
+      "hints": [
+        "The d stands for declaration — no runnable code, only type shapes"
+      ],
+      "choices": [
+        {
+          "label": "A)  It contains runtime JavaScript",
+          "correct": false
+        },
+        {
+          "label": "B)  It describes the types of a module without containing any implementation",
+          "correct": true
+        },
+        {
+          "label": "C)  It replaces tsconfig.json",
+          "correct": false
+        },
+        {
+          "label": "D)  It is required for every TypeScript file",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "modules-05",
+      "title": "Write a declaration file for a JS module",
+      "topic": "08-modules",
+      "level": 3,
+      "type": "file",
+      "description": "You have a legacy JavaScript utility with no types:\n\n```js\n// metrics.js\nfunction increment(name, value = 1) { /* sends metric */ }\nfunction gauge(name, value) { /* sets gauge */ }\nfunction timing(name, durationMs) { /* records timing */ }\nmodule.exports = { increment, gauge, timing }\n```\n\nWrite `metrics.d.ts` that declares the types for this module so TypeScript consumers get full type safety.\n\nInclude a `MetricName` type alias for string (for documentation purposes) and make all functions return void.",
+      "whyMatters": "Writing .d.ts files for internal tooling is a day-one software engineering TypeScript task — legacy scripts get types without being rewritten.",
+      "hints": [
+        "declare module './metrics' { ... } or just declare the functions directly",
+        "export type MetricName = string",
+        "Declare each exported function with its parameter names, the MetricName alias for the first arg, an optional second parameter where applicable, and a void return type"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

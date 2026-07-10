@@ -28,7 +28,6 @@ export interface TopicMeta {
   id: string
   title: string
   description: string
-  prerequisites: string[]
   challenges: Challenge[]
 }
 
@@ -40,4 +39,5 @@ export interface Progress {
   lastSeen: string
   startingLevel?: StartingLevel
   unlockedTopics: string[]
+  seenAutoSaveTip?: boolean
 }

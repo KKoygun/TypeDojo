@@ -1,0 +1,179 @@
+{
+  "id": "16-testing-streams",
+  "title": "Testing & Node.js Streams",
+  "description": "Type-safe testing patterns, typed Node.js streams, and tsconfig for larger projects.",
+  "challenges": [
+    {
+      "id": "testing-01",
+      "title": "Why TypeScript + testing",
+      "topic": "16-testing-streams",
+      "level": 1,
+      "type": "terminal",
+      "description": "What does TypeScript add to a test suite beyond what plain JavaScript provides?\n\n  // This test compiles fine in JS but TypeScript catches the bug:\n  const result = formatPort('not-a-number')  // TS error: string not assignable to number\n  expect(result).toBe(':NaN')",
+      "whyMatters": "Typed tests catch wrong argument types at write-time rather than test-run time — you find bugs in the test itself before running anything.",
+      "hints": [
+        "TypeScript checks the test arguments against the function signature"
+      ],
+      "choices": [
+        {
+          "label": "Nothing — tests run at runtime where types are erased anyway",
+          "correct": false
+        },
+        {
+          "label": "TypeScript catches wrong argument types, missing properties, and return type mismatches at compile time — before the test even runs",
+          "correct": true
+        },
+        {
+          "label": "TypeScript makes tests slower because it adds type checking overhead",
+          "correct": false
+        },
+        {
+          "label": "TypeScript automatically generates test cases from your types",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "testing-02",
+      "title": "Type-safe mock functions",
+      "topic": "16-testing-streams",
+      "level": 2,
+      "type": "terminal",
+      "description": "What is wrong with this mock?\n\n  interface EmailService { send(to: string, subject: string, body: string): Promise<void> }\n\n  const mockSend = jest.fn()\n  const service: EmailService = { send: mockSend }",
+      "whyMatters": "Untyped mocks let you call them with wrong arguments in tests, giving false confidence. A typed mock ensures your test actually reflects the real contract.",
+      "hints": [
+        "jest.fn() returns type jest.Mock which is not assignable to the typed function signature without casting"
+      ],
+      "choices": [
+        {
+          "label": "mockSend has type jest.Mock — it is not typed to match the send signature, so calls in tests are not checked",
+          "correct": true
+        },
+        {
+          "label": "No problem — jest.fn() infers the type from usage",
+          "correct": false
+        },
+        {
+          "label": "The mock will throw at runtime",
+          "correct": false
+        },
+        {
+          "label": "EmailService cannot have a mock implementation",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "testing-03",
+      "title": "Write a typed mock system",
+      "topic": "16-testing-streams",
+      "level": 2,
+      "type": "file",
+      "description": "Write a minimal typed mock system without any test framework:\n\n  type MockFn<T extends (...args: any[]) => any> = T & {\n    calls: Parameters<T>[]\n    returnValues: ReturnType<T>[]\n    mockReturnValue(val: ReturnType<T>): void\n    reset(): void\n  }\n\nWrite `createMock<T extends (...args: any[]) => any>(impl?: T): MockFn<T>` that:\n- Records every call's arguments in `calls`\n- Records every return value in `returnValues`\n- `mockReturnValue(val)` — makes all future calls return val instead of calling impl\n- `reset()` — clears calls, returnValues, and removes the override\n\nThe returned function must be callable with the same signature as T.",
+      "whyMatters": "Understanding how typed mocks work under the hood makes you a much better user of Jest/Vitest mocking APIs — and lets you build test utilities for APIs without mock framework support.",
+      "hints": [
+        "Create a function that records calls, then assign the extra properties to it",
+        "let override: ReturnType<T> | undefined — check in the function body",
+        "Use as unknown as MockFn<T> to cast the result — the types are correct structurally"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "testing-04",
+      "title": "Node.js typed streams — concept",
+      "topic": "16-testing-streams",
+      "level": 3,
+      "type": "terminal",
+      "description": "What is the difference between a Readable, Writable, and Transform stream in Node.js?\n\n  import { Readable, Writable, Transform } from 'stream'\n\nAnd what does piping do?\n\n  readable.pipe(transform).pipe(writable)",
+      "whyMatters": "software engineering tools frequently process large log files, streaming API responses, or piped command output. Streams let you handle gigabytes of data without loading it all into memory.",
+      "hints": [
+        "Readable produces data, Writable consumes it, Transform does both"
+      ],
+      "choices": [
+        {
+          "label": "Readable reads files · Writable writes files · Transform converts between the two · pipe chains them",
+          "correct": false
+        },
+        {
+          "label": "Readable produces data chunks · Writable consumes them · Transform both receives and emits chunks · pipe connects output of one to input of next",
+          "correct": true
+        },
+        {
+          "label": "All three are the same with different names",
+          "correct": false
+        },
+        {
+          "label": "pipe is synchronous — it blocks until all data flows through",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "testing-05",
+      "title": "Write a typed Transform stream",
+      "topic": "16-testing-streams",
+      "level": 3,
+      "type": "file",
+      "description": "Write a Transform stream `JsonLineParser` that:\n- Extends Transform\n- Takes incoming chunks of text (newline-delimited JSON)\n- Splits on newlines, parses each line as JSON\n- Pushes each parsed object downstream\n- Skips blank lines silently\n- On invalid JSON, emits an 'error' event with a descriptive Error\n\nAlso write a helper `parseJsonLines<T>(input: string): T[]` that uses the stream to parse a multi-line JSON string synchronously (buffer all results into an array).\n\nUse the `stream` module from Node.js stdlib only.",
+      "whyMatters": "JSON-lines (ndjson) is the standard format for structured logs, Kubernetes event streams, and Docker stats output. A typed parser is a real tool you'd write or reach for constantly.",
+      "hints": [
+        "class JsonLineParser extends Transform { _transform(chunk, encoding, callback) { ... } }",
+        "Buffer remaining partial lines between chunks using a private string accumulator",
+        "For parseJsonLines: push input into the stream synchronously, collect push() results"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "testing-06",
+      "title": "Write a typed test suite",
+      "topic": "16-testing-streams",
+      "level": 4,
+      "type": "file",
+      "description": "Write a minimal typed test runner (no external framework):\n\n  interface TestResult { name: string; passed: boolean; error?: string; durationMs: number }\n  interface SuiteResult { suite: string; results: TestResult[]; passed: number; failed: number; totalMs: number }\n\nWrite:\n- `test(name: string, fn: () => void | Promise<void>): Promise<TestResult>` — runs fn, catches errors\n- `suite(name: string, tests: Record<string, () => void | Promise<void>>): Promise<SuiteResult>` — runs all tests, collects results\n- `printSuite(result: SuiteResult): void` — prints a summary to stdout:\n  ```\n  Suite: my-suite (3/4 passed, 45ms)\n    ✓ test one (12ms)\n    ✗ test two (5ms): expected 2 but got 3\n    ✓ test three (8ms)\n  ```\n- `assert<T>(actual: T, expected: T, label?: string): void` — throws if not strictly equal",
+      "whyMatters": "Building a test runner gives you deep understanding of how Jest/Vitest work. The typed interfaces also show how to model async result collection — a pattern used in health check aggregators and CI reporting.",
+      "hints": [
+        "test: wrap fn() in try/catch, measure with Date.now()",
+        "Iterate over the tests object's entries to get name-function pairs, run each through test(), then await all results in parallel",
+        "Use strict equality; if the values differ, throw with both the actual and expected values in the message — use the optional label if provided",
+        "printSuite: write the summary header line first (suite name, pass counts, total time), then iterate results — prefix each with a checkmark or cross based on passed, and append the duration or error"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "testing-07",
+      "title": "tsconfig for larger projects",
+      "topic": "16-testing-streams",
+      "level": 4,
+      "type": "terminal",
+      "description": "What do `paths` and `baseUrl` in tsconfig enable, and what problem do they solve?\n\n  {\n    \"compilerOptions\": {\n      \"baseUrl\": \".\",\n      \"paths\": { \"@lib/*\": [\"src/lib/*\"] }\n    }\n  }\n\n  // Now you can write:\n  import { loadConfig } from '@lib/config'\n  // Instead of:\n  import { loadConfig } from '../../../lib/config'",
+      "whyMatters": "Relative import hell (`../../../`) is a real maintainability problem in large production tooling repos. Path aliases make imports stable across file moves.",
+      "hints": [
+        "paths define import aliases; baseUrl is the root for resolving them"
+      ],
+      "choices": [
+        {
+          "label": "paths create npm package aliases; baseUrl sets the npm registry",
+          "correct": false
+        },
+        {
+          "label": "paths and baseUrl together define import aliases — @lib/config resolves to src/lib/config, eliminating deep relative paths",
+          "correct": true
+        },
+        {
+          "label": "They only work with webpack — not with ts-node or tsc directly",
+          "correct": false
+        },
+        {
+          "label": "baseUrl sets the TypeScript version; paths define type overrides",
+          "correct": false
+        }
+      ]
+    }
+  ]
+}

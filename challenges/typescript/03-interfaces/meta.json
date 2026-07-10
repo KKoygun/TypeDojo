@@ -1,0 +1,165 @@
+{
+  "id": "03-interfaces",
+  "title": "Interfaces & Object Shapes",
+  "description": "Model data structures with interfaces — the backbone of typed configs, API responses, and domain objects.",
+  "challenges": [
+    {
+      "id": "interfaces-01",
+      "title": "What is an interface?",
+      "topic": "03-interfaces",
+      "level": 1,
+      "type": "terminal",
+      "description": "What does a TypeScript interface define?\n\n  A)  A class that can be instantiated\n  B)  The shape of an object — what properties and types it must have\n  C)  A runtime value that validates objects\n  D)  A function signature only",
+      "whyMatters": "Every config object, API response, and domain model you work with has a shape — interfaces let you express that shape and catch mismatches at compile time.",
+      "hints": [
+        "Interfaces describe structure, not implementation — they exist only at compile time"
+      ],
+      "choices": [
+        {
+          "label": "A)  A class that can be instantiated",
+          "correct": false
+        },
+        {
+          "label": "B)  The shape of an object — what properties and types it must have",
+          "correct": true
+        },
+        {
+          "label": "C)  A runtime value that validates objects",
+          "correct": false
+        },
+        {
+          "label": "D)  A function signature only",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "interfaces-02",
+      "title": "Define a User interface",
+      "topic": "03-interfaces",
+      "level": 1,
+      "type": "file",
+      "description": "Define a `User` interface with three required fields:\n- `id` (string)\n- `name` (string)\n- `email` (string)\n\nThen write a function `createUser(id, name, email)` that returns a `User`.",
+      "whyMatters": "Defining and using typed user objects is one of the first things you do in any application — auth systems, dashboards, APIs.",
+      "hints": [
+        "Declare each field inside the interface body with its type — all three are primitive string types",
+        "The return type of createUser should be: User"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "interfaces-03",
+      "title": "Function accepting an interface",
+      "topic": "03-interfaces",
+      "level": 1,
+      "type": "file",
+      "description": "Define an `AppConfig` interface with:\n- `name` (string)\n- `version` (string)\n- `port` (number)\n\nThen write a function `formatConfig(config: AppConfig): string` that returns a string in this format:\n`\"name v1.0 on port 8080\"`",
+      "whyMatters": "Functions that accept typed objects are the core of any typed API — you describe the shape once and every caller gets checked against it.",
+      "hints": [
+        "Build the return string by embedding the three config fields — note the fixed text fragments (v, on port) that appear between them",
+        "The parameter type is: config: AppConfig"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "interfaces-04",
+      "title": "Optional properties",
+      "topic": "03-interfaces",
+      "level": 2,
+      "type": "file",
+      "description": "Write an interface `ServiceConfig` with:\n- `host` (string, required)\n- `port` (number, required)\n- `timeout` (number, optional)\n- `retries` (number, optional)\n\nThen write `buildUrl(config: ServiceConfig): string` that returns `\"http://localhost:8080\"`.",
+      "whyMatters": "Optional config fields are everywhere — timeouts, retry counts, feature flags. TypeScript makes it explicit which fields can be absent.",
+      "hints": [
+        "Use ? for optional properties: timeout?: number",
+        "Combine the fixed protocol prefix, host, and port with the correct separators in a template literal"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "interfaces-05",
+      "title": "Readonly properties",
+      "topic": "03-interfaces",
+      "level": 2,
+      "type": "file",
+      "description": "Write an interface `DbConfig` with three `readonly` properties:\n- `host` (string)\n- `port` (number)\n- `dbName` (string)\n\nThen write `createDbConfig(host, port, dbName): DbConfig` that returns a new DbConfig.",
+      "whyMatters": "Readonly config objects prevent accidental mutation — critical when the same config object is shared across multiple services.",
+      "hints": [
+        "Add readonly before each property: readonly host: string",
+        "The return type is DbConfig — TypeScript enforces readonly at the call site"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "interfaces-06",
+      "title": "Extending interfaces",
+      "topic": "03-interfaces",
+      "level": 2,
+      "type": "file",
+      "description": "Model a deployment manifest using two interfaces:\n\n`Resource` with: `id` (string), `name` (string), `labels` (Record<string, string>)\n\n`Deployment` extending `Resource` with: `image` (string), `replicas` (number), `env` (Record<string, string>, optional)\n\nWrite `describeDeployment(d: Deployment): string` returning:\n`[id] name → image x replicas replicas`",
+      "whyMatters": "Extending interfaces models inheritance in your domain — a DeployedService extends Service extends Resource. Common in infrastructure typings.",
+      "hints": [
+        "Use extends: interface Deployment extends Resource { ... }",
+        "Follow the output format from the description exactly — embed each field at the right position, with the surrounding punctuation as literal text"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "interfaces-07",
+      "title": "Index signatures",
+      "topic": "03-interfaces",
+      "level": 3,
+      "type": "file",
+      "description": "Write an interface `LabelMap` with an index signature: any string key maps to a string value.\n\nThen write `mergeLabels(a: LabelMap, b: LabelMap): LabelMap` that merges two label maps — if both have the same key, `b` wins.",
+      "whyMatters": "Dynamic key-value maps appear in Kubernetes labels, HTTP headers, and environment configs — index signatures are how you type them.",
+      "hints": [
+        "The spread operator (...) lets you combine two objects into one — check the concept card for how it works",
+        "Index signature syntax: { [key: string]: string }"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "interfaces-08",
+      "title": "Method signatures",
+      "topic": "03-interfaces",
+      "level": 3,
+      "type": "file",
+      "description": "Write a `Counter` interface with four method signatures:\n- `increment(): void`\n- `decrement(): void`\n- `value(): number`\n- `reset(): void`\n\nThen write `createCounter(initial?: number): Counter` that returns an object implementing the interface.",
+      "whyMatters": "Interfaces with method signatures are how you type factories, plugins, and service objects — the caller knows the contract without seeing the implementation.",
+      "hints": [
+        "Declare a mutable variable inside createCounter before the return statement — initialize from the optional parameter, falling back to 0 if absent",
+        "Return an object literal with all four methods"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "interfaces-09",
+      "title": "Bring it together",
+      "topic": "03-interfaces",
+      "level": 3,
+      "type": "file",
+      "description": "Define two nested interfaces:\n\n`Address`: `street` (string), `city` (string), `country` (string), `postCode` (string, optional)\n\n`Contact`: `id` (string), `firstName` (string), `lastName` (string), `email` (string), `phone` (string, optional), `address` (Address)\n\nThen write two functions that each return a formatted string:\n- `fullName(contact: Contact): string` — returns the contact's full name, e.g. Alice Smith\n- `formatContact(contact: Contact): string` — returns a single-line summary, e.g. Alice Smith <alice@example.com> - London",
+      "whyMatters": "Nested interfaces with optional properties mirror real-world data — every CRM, HR system, and user API you'll ever work with has a shape like this.",
+      "hints": [
+        "Both functions return a plain string — build it with a template literal using the contact fields",
+        "formatContact needs the full name, email, and city — you already have a function that gives you the full name"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

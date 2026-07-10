@@ -14,7 +14,7 @@ function main(): void {
   for (const topic of curriculum) {
     console.log(chalk.bold(`  ${topic.title}`))
     for (const c of topic.challenges) {
-      const unlocked = isUnlocked(c.id, allIds, progress)
+      const unlocked = isUnlocked(c.id, allIds, progress, { topic: topic.id })
       const done = progress.completed[c.id]
       const icon =
         done === "pass" ? chalk.green("✓") :

@@ -1,0 +1,179 @@
+{
+  "id": "18-generators-iterators",
+  "title": "Sync Generators & Iterators",
+  "description": "function*, yield, Symbol.iterator, Iterable<T>, Iterator<T> — lazy sequences and custom iterables.",
+  "challenges": [
+    {
+      "id": "gen-01",
+      "title": "What does a generator function return?",
+      "topic": "18-generators-iterators",
+      "level": 1,
+      "type": "terminal",
+      "description": "What is the type of `gen` here, and what happens each time you call `.next()`?\n\n  function* counter(start: number): Generator<number> {\n    let i = start\n    while (true) { yield i++ }\n  }\n\n  const gen = counter(1)",
+      "whyMatters": "Generators are how you produce values lazily — useful for pagination, chunked file reading, and rate-limited API polling where you don't want to load everything upfront.",
+      "hints": [
+        "function* returns a Generator object — calling next() runs the function until the next yield"
+      ],
+      "choices": [
+        {
+          "label": "gen is number[] — all values are computed immediately",
+          "correct": false
+        },
+        {
+          "label": "gen is Generator<number> — each .next() call resumes execution and returns { value: number, done: boolean }",
+          "correct": true
+        },
+        {
+          "label": "gen is Promise<number> — generators are always async",
+          "correct": false
+        },
+        {
+          "label": "gen is an infinite loop that crashes immediately",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "gen-02",
+      "title": "yield and Generator types",
+      "topic": "18-generators-iterators",
+      "level": 1,
+      "type": "terminal",
+      "description": "What are the three type parameters of `Generator<T, TReturn, TNext>`?\n\n  function* adder(): Generator<number, string, number> {\n    let total = 0\n    while (true) {\n      const n = yield total\n      if (n === undefined) return 'done'\n      total += n\n    }\n  }",
+      "whyMatters": "Understanding the full Generator type lets you build bidirectional generators — useful for coroutines and state machines in complex automation scripts.",
+      "hints": [
+        "T = yielded type, TReturn = final return type, TNext = type sent in via .next(value)"
+      ],
+      "choices": [
+        {
+          "label": "T = what yield produces  ·  TReturn = return value when done  ·  TNext = value sent into next()",
+          "correct": true
+        },
+        {
+          "label": "T = input type  ·  TReturn = output type  ·  TNext = error type",
+          "correct": false
+        },
+        {
+          "label": "All three are the same type",
+          "correct": false
+        },
+        {
+          "label": "Generator only has one type parameter",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "gen-03",
+      "title": "Iterable vs Iterator",
+      "topic": "18-generators-iterators",
+      "level": 2,
+      "type": "terminal",
+      "description": "What is the difference between `Iterable<T>` and `Iterator<T>`?\n\n  // Which does for...of require?\n  for (const x of someValue) { ... }\n\n  // Which does .next() live on?",
+      "whyMatters": "Knowing the distinction prevents confusion when typing custom data structures — an array is Iterable, but the thing you get from array[Symbol.iterator]() is the Iterator.",
+      "hints": [
+        "Iterable has [Symbol.iterator]() which returns an Iterator. Iterator has .next()"
+      ],
+      "choices": [
+        {
+          "label": "They are the same — both have .next()",
+          "correct": false
+        },
+        {
+          "label": "Iterable has [Symbol.iterator]() method — for...of requires Iterable. Iterator has .next() — it is what [Symbol.iterator]() returns",
+          "correct": true
+        },
+        {
+          "label": "Iterator is for arrays, Iterable is for objects",
+          "correct": false
+        },
+        {
+          "label": "Iterable is async only",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "gen-04",
+      "title": "Write generators for lazy sequences",
+      "topic": "18-generators-iterators",
+      "level": 2,
+      "type": "file",
+      "description": "Write these generator functions:\n\n1. `range(start: number, end: number, step?: number): Generator<number>` — yields start, start+step, ... up to (not including) end. Default step is 1.\n\n2. `take<T>(iterable: Iterable<T>, n: number): Generator<T>` — yields first n values from any iterable\n\n3. `fibonacci(): Generator<number>` — infinite sequence: 0, 1, 1, 2, 3, 5, 8, ...\n\nAll must work with `for...of`.",
+      "whyMatters": "range and take are the building blocks of lazy data pipelines — processing the first N results of a paginated API, sampling log entries, generating test data.",
+      "hints": [
+        "Use a standard for loop that starts at start, stops before end, and advances by step — yield the loop variable each iteration",
+        "take: use for...of on the iterable, yield each, count down",
+        "Track the two most recent Fibonacci values and yield the first each iteration — then advance both by computing the next value"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "gen-05",
+      "title": "Custom iterable with Symbol.iterator",
+      "topic": "18-generators-iterators",
+      "level": 3,
+      "type": "terminal",
+      "description": "What must a class implement to be usable with `for...of`?\n\n  class Range {\n    constructor(private start: number, private end: number) {}\n    // what goes here?\n  }\n\n  for (const n of new Range(1, 5)) { ... }",
+      "whyMatters": "Custom iterables let you make domain objects — log buffers, service registries, config stores — directly iterable without exposing internal arrays.",
+      "hints": [
+        "Symbol.iterator is the well-known symbol that for...of calls to get an iterator"
+      ],
+      "choices": [
+        {
+          "label": "Implement a .forEach() method",
+          "correct": false
+        },
+        {
+          "label": "Implement [Symbol.iterator](): Iterator<number> — returning an object with .next()",
+          "correct": true
+        },
+        {
+          "label": "Extend Array<number>",
+          "correct": false
+        },
+        {
+          "label": "Implement .next() directly on the class",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "gen-06",
+      "title": "Write a custom iterable class",
+      "topic": "18-generators-iterators",
+      "level": 3,
+      "type": "file",
+      "description": "Write a `LinkedList<T>` class that is iterable:\n\n  interface ListNode<T> { value: T; next: ListNode<T> | null }\n\n  class LinkedList<T> implements Iterable<T> {\n    private head: ListNode<T> | null = null\n\n    push(value: T): void        // add to end\n    toArray(): T[]              // collect all values\n    [Symbol.iterator](): Iterator<T>  // enables for...of\n  }\n\nThe iterator must walk the linked list from head to tail. Use a generator function for the iterator implementation.",
+      "whyMatters": "Implementing Iterable on a custom data structure is a real TypeScript skill — and understanding linked list traversal through a generator is a clean example of how generators and iterators compose.",
+      "hints": [
+        "push: walk to the last node (next === null), set its next to the new node",
+        "Implement the iterator as a generator function — start at the head node and walk the list by following each node next pointer, yielding the value at each step",
+        "The return type of [Symbol.iterator] when using a generator is automatically compatible with Iterator<T>"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "gen-07",
+      "title": "Generator pipeline",
+      "topic": "18-generators-iterators",
+      "level": 4,
+      "type": "file",
+      "description": "Build a lazy generator pipeline:\n\n- `map<T, U>(iterable: Iterable<T>, fn: (val: T) => U): Generator<U>` — transform each value\n- `filter<T>(iterable: Iterable<T>, fn: (val: T) => boolean): Generator<T>` — keep matching values\n- `reduce<T, U>(iterable: Iterable<T>, fn: (acc: U, val: T) => U, initial: U): U` — collect to single value\n- `pipe<T>(...iterables: Array<Iterable<T>>): Generator<T>` — concatenate multiple iterables\n\nAll intermediate functions must be lazy — no intermediate arrays.\n\nDemo: use them together to sum even squares from 1..20.",
+      "whyMatters": "Lazy generator pipelines process data without intermediate allocations — essential when dealing with large log files, streaming API results, or memory-constrained environments.",
+      "hints": [
+        "map/filter: function* — use for...of on the iterable inside",
+        "reduce: not a generator — just iterate and accumulate",
+        "Iterate over each input iterable in order and re-yield all its values — the yield* expression delegates to a nested iterable",
+        "Compose the four pipeline functions: produce integers in the range, transform each to its square, keep only even results, then sum them — nest the calls so each wraps the previous"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

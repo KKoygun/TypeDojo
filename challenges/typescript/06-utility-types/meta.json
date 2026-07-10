@@ -1,0 +1,171 @@
+{
+  "id": "06-utility-types",
+  "title": "Utility Types",
+  "description": "Use TypeScript's built-in type transformers to derive new types from existing ones without duplication.",
+  "challenges": [
+    {
+      "id": "utility-01",
+      "title": "What is Partial<T>?",
+      "topic": "06-utility-types",
+      "level": 1,
+      "type": "terminal",
+      "description": "Given `interface Config { host: string; port: number }`, what does `Partial<Config>` produce?\n\n  A)  { host?: string; port?: number }\n  B)  { readonly host: string; readonly port: number }\n  C)  { host: string | null; port: number | null }\n  D)  { host: never; port: never }",
+      "whyMatters": "Partial<T> is the most-used utility type — it appears in every update/patch function, form handler, and config merge you'll write.",
+      "hints": [
+        "Partial makes every property optional by adding ?"
+      ],
+      "choices": [
+        {
+          "label": "A)  { host?: string; port?: number }",
+          "correct": true
+        },
+        {
+          "label": "B)  { readonly host: string; readonly port: number }",
+          "correct": false
+        },
+        {
+          "label": "C)  { host: string | null; port: number | null }",
+          "correct": false
+        },
+        {
+          "label": "D)  { host: never; port: never }",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "utility-02",
+      "title": "Partial — update function",
+      "topic": "06-utility-types",
+      "level": 1,
+      "type": "file",
+      "description": "Define an interface `ServerConfig` with:\n- `host` (string)\n- `port` (number)\n- `maxConnections` (number)\n- `debug` (boolean)\n\nThen write `updateConfig(config: ServerConfig, changes: Partial<ServerConfig>): ServerConfig` that merges changes into the existing config and returns the result.",
+      "whyMatters": "Partial is the canonical type for patch/update operations — you only pass the fields that change, not the entire object.",
+      "hints": [
+        "Partial<ServerConfig> makes every field optional",
+        "Spread both objects into a new object — properties from the second argument take precedence when the same key appears in both"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "utility-03",
+      "title": "Readonly — immutable config",
+      "topic": "06-utility-types",
+      "level": 1,
+      "type": "file",
+      "description": "Define a `DatabaseConfig` interface with: `host`, `port` (number), `name`, `user`, `password` (all strings except port).\n\nWrite `freezeConfig(config: DatabaseConfig): Readonly<DatabaseConfig>` that returns the config as Readonly.\n\nWrite `describeConfig(config: Readonly<DatabaseConfig>): string` that returns `\"user@host:port/name\"`.",
+      "whyMatters": "Readonly<T> prevents mutation at the type level — it's how you mark shared config objects as safe to pass around without defensive copying.",
+      "hints": [
+        "Readonly<T> makes all properties readonly — TypeScript blocks assignment",
+        "Readonly<T> is a compile-time concept only — think about what the function body needs to do at runtime to return the config unchanged",
+        "Follow the output pattern from the description — four fields joined with @, :, and / as separators"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "utility-04",
+      "title": "Pick and Omit",
+      "topic": "06-utility-types",
+      "level": 2,
+      "type": "file",
+      "description": "Define a `FullUser` interface with: `id` (string), `name` (string), `email` (string), `password` (string), `createdAt` (string), `role` (string).\n\nCreate two derived types using Pick and Omit:\n- `PublicUser` = Pick keeping only: id, name, email, role\n- `CreateUserDto` = Omit removing: id and createdAt\n\nWrite functions:\n- `toPublic(user: FullUser): PublicUser`\n- `describeUser(user: PublicUser): string` → `\"name (role)\"`",
+      "whyMatters": "Pick and Omit let you derive API response shapes and DTO types from a single source model — the most common pattern in typed backends.",
+      "hints": [
+        "Use Pick to select only the four fields that should be visible externally — list them as a union of string literals",
+        "Use Omit to exclude the two fields the server generates automatically — everything else stays required",
+        "toPublic only needs to return the four fields declared in PublicUser — pull them from the FullUser argument and return a new object"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "utility-05",
+      "title": "Record — typed dictionary",
+      "topic": "06-utility-types",
+      "level": 2,
+      "type": "file",
+      "description": "Write a function `buildEnvMap(pairs: [string, string][]): Record<string, string>` that converts an array of key-value pairs into a Record.\n\nThen write `getEnv(map: Record<string, string>, key: string, fallback: string): string` that returns the value for key, or fallback if the key is absent.",
+      "whyMatters": "Record<K, V> is the typed equivalent of a plain JS object used as a dictionary — environment maps, HTTP headers, and config stores all use this pattern.",
+      "hints": [
+        "JavaScript has a built-in that converts an array of key-value pairs directly into an object — use it on the pairs argument",
+        "Access the map by key — if the key is absent the result is undefined; use the nullish coalescing operator to fall back to the default"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "utility-06",
+      "title": "Required — enforce completeness",
+      "topic": "06-utility-types",
+      "level": 2,
+      "type": "file",
+      "description": "Define an interface `PartialOptions` where all four fields are optional:\n- `timeout?: number`\n- `retries?: number`\n- `baseUrl?: string`\n- `debug?: boolean`\n\nWrite `withDefaults(options: PartialOptions): Required<PartialOptions>` that fills in defaults:\n- timeout: 5000\n- retries: 3\n- baseUrl: \"http://localhost\"\n- debug: false",
+      "whyMatters": "Required<T> is useful as a return-type assertion — it documents that your function always returns a fully populated object, even if the input was sparse.",
+      "hints": [
+        "Required<PartialOptions> strips all ? marks — every field is mandatory in the return type",
+        "Spread the defaults object first so provided options override them — the defaults object should list all four fields with their fallback values"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "utility-07",
+      "title": "ReturnType and Parameters",
+      "topic": "06-utility-types",
+      "level": 3,
+      "type": "file",
+      "description": "Write a function `createServer(host: string, port: number, debug: boolean)` that returns `{ host, port, debug, start: () => string }` where start returns `\"started\"`.\n\nThen write, using only ReturnType and Parameters (not manual types):\n- `type Server` — the return type of createServer\n- `type ServerArgs` — the parameter tuple of createServer\n- `restart(server: Server, args: ServerArgs): Server` — creates a new server from the args",
+      "whyMatters": "ReturnType and Parameters let you derive types from existing functions — so when the function changes, the derived types update automatically.",
+      "hints": [
+        "Use ReturnType with typeof to derive the Server type directly from the function — no manual annotation needed",
+        "Use Parameters with typeof to capture the argument tuple of createServer — the result is a tuple of the three parameter types",
+        "Call createServer from inside restart and spread the args tuple so each element lines up with the matching parameter"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "utility-08",
+      "title": "Combining utility types",
+      "topic": "06-utility-types",
+      "level": 3,
+      "type": "file",
+      "description": "Define a `Service` interface with: `id` (string), `name` (string), `endpoint` (string), `apiKey` (string), `timeout` (number, optional), `retries` (number, optional).\n\nDerive:\n- `PublicService` = Omit `apiKey` then make it Readonly\n- `ServicePatch` = Partial of Omit of `id` and `apiKey` (fields you can update)\n\nWrite:\n- `toPublic(s: Service): PublicService`\n- `applyPatch(s: Service, patch: ServicePatch): Service`",
+      "whyMatters": "Chaining utility types — Readonly<Omit<T, K>>, Partial<Omit<T, K>> — is the pattern behind every well-typed CRUD API you'll see in production codebases.",
+      "hints": [
+        "Chain two utility types: first remove the sensitive field with Omit, then wrap the result in Readonly to prevent mutation",
+        "First omit the fields that must never be changed, then wrap the remainder in Partial so every update field becomes optional",
+        "Merge the original service with the patch — spread both into a new object, letting the patch override any matching fields"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "utility-09",
+      "title": "Bring it together",
+      "topic": "06-utility-types",
+      "level": 3,
+      "type": "file",
+      "description": "Build a typed event system:\n\n`interface EventMap { userCreated: { id: string; name: string }; orderPlaced: { orderId: string; total: number }; error: { code: number; message: string } }`\n\nWrite:\n- `type EventName` = keyof EventMap\n- `type EventPayload<K extends EventName>` = EventMap[K]\n- `emit<K extends EventName>(event: K, payload: EventPayload<K>): string` → returns `\"event:\" + JSON.stringify(payload)`\n- `on<K extends EventName>(event: K, handler: (payload: EventPayload<K>) => void): void` → calls handler immediately with payload",
+      "whyMatters": "Typed event systems — using keyof + indexed access — are the pattern behind typed EventEmitters, message buses, and pub/sub systems in TypeScript.",
+      "hints": [
+        "Derive EventName from EventMap without listing the keys manually — the keyof operator extracts all keys as a union",
+        "Use indexed access to look up the payload type for event K in EventMap — K acts as the index",
+        "Return a string that prefixes the event name with a colon, then appends the serialized payload",
+        "The on function receives both the handler and the payload — immediately invoke the handler with the payload"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

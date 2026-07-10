@@ -1,0 +1,178 @@
+{
+  "id": "13-enums-tuples",
+  "title": "Enums, Tuples & Const Assertions",
+  "description": "String/numeric/const enums, when to prefer union literals, tuples, and const assertions for immutable inference.",
+  "challenges": [
+    {
+      "id": "enums-01",
+      "title": "String enum vs union literal",
+      "topic": "13-enums-tuples",
+      "level": 1,
+      "type": "terminal",
+      "description": "Both of these achieve similar results. What is the key practical difference?\n\n  // Option A\n  enum Status { Active = 'active', Inactive = 'inactive' }\n\n  // Option B\n  type Status = 'active' | 'inactive'",
+      "whyMatters": "Most TypeScript style guides (including Google and Airbnb) now prefer union literals over enums. Knowing why helps you read legacy code and make informed choices in new projects.",
+      "hints": [
+        "Enums compile to JavaScript objects; union literals are erased at compile time"
+      ],
+      "choices": [
+        {
+          "label": "No difference — they are interchangeable",
+          "correct": false
+        },
+        {
+          "label": "Enums exist at runtime as JavaScript objects and add bundle size; union literals are compile-time only and produce no output",
+          "correct": true
+        },
+        {
+          "label": "Union literals are faster at runtime",
+          "correct": false
+        },
+        {
+          "label": "Enums support more values than union literals",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "enums-02",
+      "title": "const enum — inlined values",
+      "topic": "13-enums-tuples",
+      "level": 1,
+      "type": "terminal",
+      "description": "What does `const enum` do differently from a regular enum?\n\n  const enum Direction { Up = 'UP', Down = 'DOWN' }\n  const d = Direction.Up  // compiles to: const d = 'UP'",
+      "whyMatters": "const enums are inlined at compile time — no runtime object, no bundle cost. But they break in certain module configs (isolatedModules). Knowing this prevents mysterious build failures.",
+      "hints": [
+        "const enum values are substituted inline by the compiler — no JavaScript object is emitted"
+      ],
+      "choices": [
+        {
+          "label": "const enum is the same as enum but declared as a constant",
+          "correct": false
+        },
+        {
+          "label": "const enum values are inlined at compile time — no runtime object is created, but they break under isolatedModules",
+          "correct": true
+        },
+        {
+          "label": "const enum is deprecated and should not be used",
+          "correct": false
+        },
+        {
+          "label": "const enum creates a frozen object at runtime",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "enums-03",
+      "title": "Tuple types",
+      "topic": "13-enums-tuples",
+      "level": 2,
+      "type": "terminal",
+      "description": "What is the type of `result` and what does TypeScript know about each element?\n\n  function divide(a: number, b: number): [number, boolean] {\n    if (b === 0) return [0, false]\n    return [a / b, true]\n  }\n\n  const result = divide(10, 2)\n  const [value, ok] = result",
+      "whyMatters": "Tuples let you return multiple typed values from a function without a named object — common in Go-style error returns and React-style hooks.",
+      "hints": [
+        "A tuple is an array with fixed positions and fixed types at each position"
+      ],
+      "choices": [
+        {
+          "label": "result is (number | boolean)[] — TypeScript doesn't know which is which",
+          "correct": false
+        },
+        {
+          "label": "result is [number, boolean] — value is number, ok is boolean, positions are known",
+          "correct": true
+        },
+        {
+          "label": "result is any[] — tuples are not typed",
+          "correct": false
+        },
+        {
+          "label": "result is { 0: number, 1: boolean } — tuples compile to objects",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "enums-04",
+      "title": "Write functions using tuples",
+      "topic": "13-enums-tuples",
+      "level": 2,
+      "type": "file",
+      "description": "Write these tuple-returning functions:\n\n1. `trySplit(input: string, delimiter: string): [string[], boolean]`\n   — splits the string; if delimiter not found returns `[[input], false]`; otherwise `[parts, true]`\n\n2. `minMax(nums: number[]): [number, number]`\n   — returns `[min, max]`; throws Error `'Empty array'` if empty\n\n3. `parseKeyValue(line: string): [string, string] | null`\n   — parses `'KEY=VALUE'` format; returns `[key, value]` or null if format is wrong",
+      "whyMatters": "These patterns appear in config file parsers, log line processors, and CLI output parsers — all common scripting tasks.",
+      "hints": [
+        "trySplit: check if input.includes(delimiter)",
+        "JavaScript has built-in functions that find the minimum and maximum of a set of numbers — spread the array to pass all elements as individual arguments",
+        "parseKeyValue: use indexOf('=') — if -1 return null, else slice at the index"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "enums-05",
+      "title": "const assertion — as const",
+      "topic": "13-enums-tuples",
+      "level": 3,
+      "type": "terminal",
+      "description": "What is the difference between these two?\n\n  const config = { host: 'localhost', port: 8080 }\n  // type: { host: string; port: number }\n\n  const config2 = { host: 'localhost', port: 8080 } as const\n  // type: ?",
+      "whyMatters": "`as const` is used to freeze config objects so their values become literal types — essential when you want TypeScript to know the exact value, not just the type.",
+      "hints": [
+        "as const narrows every value to its literal type and makes the object deeply readonly"
+      ],
+      "choices": [
+        {
+          "label": "No difference — as const is just a style hint",
+          "correct": false
+        },
+        {
+          "label": "config2 has type { readonly host: 'localhost'; readonly port: 8080 } — literal types, not string/number",
+          "correct": true
+        },
+        {
+          "label": "config2 is frozen at runtime via Object.freeze",
+          "correct": false
+        },
+        {
+          "label": "config2 becomes a const enum",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "enums-06",
+      "title": "Use as const for typed config",
+      "topic": "13-enums-tuples",
+      "level": 3,
+      "type": "file",
+      "description": "Define a config using `as const`:\n\n```\nconst ENVIRONMENTS = ['prod', 'staging', 'dev'] as const\nconst LOG_LEVELS = ['debug', 'info', 'warn', 'error'] as const\n```\n\nDerive these types from the const arrays (no manual type literals):\n- `Environment` — union of ENVIRONMENTS values\n- `LogLevel` — union of LOG_LEVELS values\n\nWrite:\n- `isEnvironment(val: unknown): val is Environment` — type guard using the array\n- `isLogLevel(val: unknown): val is LogLevel` — type guard using the array\n- `parseEnv(val: unknown): Environment` — uses isEnvironment, throws if invalid\n- `parseLogLevel(val: unknown): LogLevel` — uses isLogLevel, throws if invalid",
+      "whyMatters": "Deriving union types from const arrays means adding 'canary' to ENVIRONMENTS automatically updates the union everywhere — single source of truth for valid values.",
+      "hints": [
+        "To derive the union type from the const array, use typeof on the array and index it with number — this extracts each element literal type as a union",
+        "Cast the const array to a readonly string array for the includes check — then cast val to string so TypeScript accepts it as the argument",
+        "Call the type guard — if it passes, return the validated value (TypeScript narrows it automatically); otherwise throw an error describing the invalid input"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "enums-07",
+      "title": "Labeled tuples and rest elements",
+      "topic": "13-enums-tuples",
+      "level": 4,
+      "type": "file",
+      "description": "Write these advanced tuple patterns:\n\n1. A function `httpResponse` with labeled tuple return type:\n   `[status: number, body: string, headers: Record<string, string>]`\n   — returns a 200 response with given body and empty headers by default\n\n2. A function `spread` that accepts a rest tuple:\n   `function spread<T extends unknown[]>(first: string, ...rest: T): [string, ...T]`\n   — prepends first to rest\n\n3. A function `zipPairs` that takes two arrays and returns an array of `[string, number]` tuples:\n   `zipPairs(keys: string[], values: number[]): [string, number][]`\n   — pairs by index, stops at the shorter array",
+      "whyMatters": "Labeled tuples appear in typed middleware chains and request/response pipelines. Rest tuples are used in typed decorator and higher-order function patterns.",
+      "hints": [
+        "Labeled tuple: type Response = [status: number, body: string, headers: Record<string, string>]",
+        "Prepend first to the rest elements in the return array — cast it to the labeled tuple type to satisfy TypeScript",
+        "zipPairs: use Math.min(keys.length, values.length) for the loop bound"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

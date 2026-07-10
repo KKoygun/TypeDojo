@@ -1,0 +1,273 @@
+{
+  "id": "01-javascript-essentials",
+  "title": "JavaScript Essentials",
+  "description": "The JavaScript foundations TypeScript is built on — variables, functions, arrays, objects, and more.",
+  "challenges": [
+    {
+      "id": "js-01",
+      "title": "Building with let",
+      "topic": "01-javascript-essentials",
+      "level": 1,
+      "type": "file",
+      "description": "Write two functions that build up results step by step — you need `let` for a variable that changes inside a loop:\n\n`repeat(str, n)` — return `str` repeated `n` times.\n`repeat(\"ha\", 3)` → `\"hahaha\"`\n\n`countdown(from)` — return an array counting down to 0.\n`countdown(3)` → `[3, 2, 1, 0]`",
+      "whyMatters": "`let` is how you tell JavaScript a variable will change — accumulation patterns like building strings and collecting results into an array always need it.",
+      "hints": [
+        "repeat: use a for loop that runs n times — add str to a running string on each iteration",
+        "countdown: start with an empty number array and push each value in — you need a loop that counts down from `from` to 0"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-06",
+      "title": "Functions two ways",
+      "topic": "01-javascript-essentials",
+      "level": 1,
+      "type": "file",
+      "description": "Write the same logic using both function styles:\n\n`double` — classic function declaration that returns n * 2\n\n`square` — const assigned to an arrow function that returns n * n\n\nType annotations are already written — focus on the logic inside each function body.",
+      "whyMatters": "Both styles are used heavily in real codebases — classic functions for named utilities, arrow functions for callbacks and short expressions.",
+      "hints": [
+        "double: use the return keyword inside the function body",
+        "square: arrow functions can drop the curly braces and return keyword when the body is a single expression"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-07",
+      "title": "Template literals",
+      "topic": "01-javascript-essentials",
+      "level": 1,
+      "type": "file",
+      "description": "Write two functions using template literals:\n\n`formatGreeting(name, age)` — returns: `Hello, Alice! You are 30 years old.`\n\n`formatPath(dir, file, ext)` — returns: `dir/file.ext` — e.g. `formatPath(\"src\", \"index\", \"ts\")` → `\"src/index.ts\"`",
+      "whyMatters": "Template literals replace string concatenation — they are shorter, more readable, and handle any expression inside ${}.",
+      "hints": [
+        "Use backticks and ${ } to embed variables: `Hello, ${name}!`",
+        "formatPath: combine all three with / and . separators inside one template literal"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-02",
+      "title": "String methods",
+      "topic": "01-javascript-essentials",
+      "level": 1,
+      "type": "file",
+      "description": "Write three functions using built-in string methods:\n\n`normalize(str)` — trim whitespace from both ends and lowercase.\n`normalize(\"  Hello  \")` → `\"hello\"`\n\n`toSlug(str)` — convert to a URL slug: lowercase, spaces become dashes.\n`toSlug(\"Hello World\")` → `\"hello-world\"`\nChain: `.toLowerCase().split(\" \").join(\"-\")`\n\n`hasWord(sentence, word)` — return true if sentence contains word, ignoring case.\n`hasWord(\"The cat sat\", \"Cat\")` → `true`",
+      "whyMatters": "Trimming, lowercasing, splitting, and joining strings are the most common string operations you'll write — they appear in search, slugs, normalization, and display formatting.",
+      "hints": [
+        "normalize: two string methods chained — one trims whitespace, one lowercases",
+        "toSlug: three steps chained — lowercase, split on spaces, rejoin with dashes",
+        "hasWord: lowercase both the sentence and the word before checking .includes() — that way the case doesn't affect the match"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-03",
+      "title": "Default parameters",
+      "topic": "01-javascript-essentials",
+      "level": 1,
+      "type": "file",
+      "description": "Write three functions with default parameter values — the caller can skip these arguments and the default is used automatically:\n\n`greet(name, greeting)` — greeting defaults to `\"Hello\"`.\n`greet(\"Alice\")` → `\"Hello, Alice!\"`\n\n`truncate(str, maxLength)` — maxLength defaults to `20`. If `str` is longer, return the first `maxLength` characters followed by `\"...\"`. Otherwise return `str` unchanged.\n\n`power(base, exp)` — exp defaults to `2`. Returns base raised to the power of exp. Use the `**` operator: `2 ** 10` is `1024`.",
+      "whyMatters": "Default parameters eliminate manual 'if not passed, use this' checks — they are one of the most-used JavaScript features in utility functions and API wrappers.",
+      "hints": [
+        "greet: add = \"Hello\" after greeting in the parameter list, then use a template literal",
+        "truncate: check the length first and return early — use .slice() to cut the string if it's too long, then add the dots",
+        "power: ** is the exponent operator in JavaScript — same idea as Math.pow but shorter"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-04",
+      "title": "Boolean logic",
+      "topic": "01-javascript-essentials",
+      "level": 1,
+      "type": "file",
+      "description": "Write three functions using boolean operators:\n\n`isAdult(age)` — return true if age is 18 or over\n\n`canAccess(age, hasTicket, isVIP)` — true if the person is an adult AND has a ticket, OR if they are a VIP. VIPs always get in regardless of age or ticket.\n\n`categorize(n)` — return `\"positive even\"`, `\"positive odd\"`, `\"negative even\"`, `\"negative odd\"`, or `\"zero\"`.\n\n`n % 2 === 0` checks if a number is even — `%` is the remainder operator: `8 % 2` is `0`, `7 % 2` is `1`.",
+      "whyMatters": "`&&` and `||` are the building blocks of every permission check, validation rule, and guard condition you will ever write.",
+      "hints": [
+        "isAdult: the condition must hold both at the exact threshold value and above it — choose the comparison operator that includes the boundary",
+        "canAccess: VIPs always get in — || separates two groups. One group always passes; the other needs both conditions true",
+        "categorize: check n === 0 first, then combine positive/negative with even/odd using a template literal"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-08",
+      "title": "Arrays — map and filter",
+      "topic": "01-javascript-essentials",
+      "level": 1,
+      "type": "file",
+      "description": "Write three functions using array methods:\n\n`doubleAll(nums)` — return a new array with every number doubled. Use `.map()`.\n\n`onlyPositive(nums)` — return only numbers greater than zero. Use `.filter()`.\n\n`firstLetters(words)` — return the first character of each word. Use `.map()`.",
+      "whyMatters": ".map() and .filter() are the two most-used array methods in JavaScript — mastering them means you can transform and select data without writing loops.",
+      "hints": [
+        "map: nums.map(n => ...) — the arrow function receives each element and returns the transformed value",
+        "filter: nums.filter(n => ...) — return true to keep the element, false to drop it",
+        "firstLetters: use word.charAt(0) to get the first character — this works reliably in TypeScript's strict mode"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-09",
+      "title": "Objects — create and spread",
+      "topic": "01-javascript-essentials",
+      "level": 2,
+      "type": "file",
+      "description": "Write three functions:\n\n`makePoint(x, y)` — return an object with x and y using property shorthand.\n\n`movePoint(point, dx, dy)` — return a NEW point shifted by dx and dy. Do not modify the original — use spread.\n\n`mergeSettings(defaults, overrides)` — merge two objects. Overrides win on any key conflict. Use spread.",
+      "whyMatters": "Property shorthand and spread are the two object patterns you will write every day — they appear in factory functions, config merging, and state updates.",
+      "hints": [
+        "Shorthand: if your variables are named x and y, return { x, y } — no need to write { x: x, y: y }",
+        "Spread to move: use spread to copy all of point's fields into a new object, then override just x and y with the shifted values",
+        "Merge: spread both objects into one — the object that appears second wins when the same key exists in both"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-10",
+      "title": "Destructuring",
+      "topic": "01-javascript-essentials",
+      "level": 2,
+      "type": "file",
+      "description": "Write two functions using destructuring:\n\n`initials(person)` — destructure firstName and lastName, return initials like `\"A.S.\"`\n\n`firstAndRest(items)` — destructure the array into the first element and an array of everything else. Return `{ first, rest }`.",
+      "whyMatters": "Destructuring is how modern JavaScript pulls values out of objects and arrays cleanly — you will see it in every function that accepts a config object or handles API responses.",
+      "hints": [
+        "Object destructure: const { firstName, lastName } = person",
+        "Array destructure with rest: destructuring syntax lets you pull the first element and capture everything else into a new array in one step",
+        "Initials: use .charAt(0) on each name — bracket indexing on strings is unreliable in TypeScript's strict mode"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-11",
+      "title": "Conditionals",
+      "topic": "01-javascript-essentials",
+      "level": 2,
+      "type": "file",
+      "description": "Write two functions:\n\n`classify(n)` — return `\"positive\"`, `\"negative\"`, or `\"zero\"` depending on whether n is greater than, less than, or equal to 0.\n\n`clamp(value, min, max)` — return value if it is between min and max (inclusive). If below min, return min. If above max, return max.",
+      "whyMatters": "The ternary and if/else are the two forms of conditional logic you will write constantly — for labelling, capping values, toggling states.",
+      "hints": [
+        "classify: use if / else if / else — three branches",
+        "clamp: three possible outcomes — below min, above max, or in range — ternary or if/else both work"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-12",
+      "title": "typeof, null, and ??",
+      "topic": "01-javascript-essentials",
+      "level": 2,
+      "type": "file",
+      "description": "Write two functions:\n\n`describeType(val)` — return a string describing the type:\n- `null` → `\"null\"` (check this first — typeof null is \"object\")\n- arrays → `\"array\"` (use Array.isArray)\n- everything else → the result of typeof (\"string\", \"number\", \"boolean\", \"object\", \"undefined\")\n\n`withFallback(val, defaultVal)` — return val if it is not null or undefined, otherwise return defaultVal. Use the ?? operator.",
+      "whyMatters": "typeof, null checks, and ?? are the building blocks of defensive code — every function that accepts unknown input uses at least one of them.",
+      "hints": [
+        "Check null first with val === null before using typeof",
+        "Check Array.isArray(val) before the typeof fallback",
+        "withFallback: ?? returns its right side only when the left is null or undefined — it ignores 0 and false"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-13",
+      "title": "Error handling",
+      "topic": "01-javascript-essentials",
+      "level": 2,
+      "type": "file",
+      "description": "Write two functions:\n\n`divide(a, b)` — if b is 0, throw `new Error(\"Division by zero\")`. Otherwise return a / b.\n\n`safeDivide(a, b)` — wrap divide in try/catch. On success return the number. On any error return 0.",
+      "whyMatters": "throw and try/catch are how JavaScript signals and recovers from errors — every function that touches external data, user input, or IO needs this pattern.",
+      "hints": [
+        "throw new Error(\"message\") — the string becomes err.message in the catch block",
+        "safeDivide: call divide inside a try block and return the result — in the catch block, return the safe fallback value"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-14",
+      "title": "for...of and chaining",
+      "topic": "01-javascript-essentials",
+      "level": 2,
+      "type": "file",
+      "description": "Write three functions:\n\n`sumOf(nums)` — use a `for...of` loop to add all numbers together and return the total.\n\n`longestWord(words)` — use a `for...of` loop to find and return the longest string. Return `\"\"` if the array is empty.\n\n`pipeline(nums)` — chain `.filter()` and `.map()`: keep only numbers greater than 0, then square each one.",
+      "whyMatters": "for...of is the clean modern loop for arrays. Chaining filter + map is the functional alternative — knowing both lets you pick the right tool for readability.",
+      "hints": [
+        "sumOf: use a running total — visit each number with for...of and add it in, then return the total after the loop",
+        "longestWord: track the longest word found so far — update it whenever the current word beats it",
+        "pipeline: nums.filter(...).map(...) — chain directly, no intermediate variable needed"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-05",
+      "title": "Simple closures",
+      "topic": "01-javascript-essentials",
+      "level": 2,
+      "type": "file",
+      "description": "Write two factory functions — each returns a function that carries private state:\n\n`makeMultiplier(factor)` — returns a function that multiplies any number by factor:\n`const double = makeMultiplier(2)`\n`double(5)` → `10`\n\n`makeToggle(initial)` — returns a function that flips between true and false each call:\n`const t = makeToggle(false)`\n`t()` → `true`   `t()` → `false`   `t()` → `true`",
+      "whyMatters": "Closures give functions private memory. Once makeMultiplier and makeToggle click, factory functions, event handlers, and the more complex makeCounter in Closures in practice all follow the same structure.",
+      "hints": [
+        "makeMultiplier: return an arrow function from inside makeMultiplier — the inner function can use factor because closures capture outer variables",
+        "makeToggle: declare a let variable for the current state inside makeToggle — the returned function flips it and returns the new value each call"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-15",
+      "title": "Closures in practice",
+      "topic": "01-javascript-essentials",
+      "level": 3,
+      "type": "file",
+      "description": "Write two closure-based functions:\n\n`makeCounter(initial)` — returns an object with four methods that share a private `count` variable:\n- `increment()` — adds 1\n- `decrement()` — subtracts 1\n- `value()` — returns current count\n- `reset()` — resets to the initial value\n\n`makeOnce(fn)` — takes a zero-argument function and returns a wrapper. The first time the wrapper is called, it invokes `fn` and caches the return value. Every subsequent call returns the cached value without invoking `fn` again:\n```\nlet calls = 0\nconst init = makeOnce(() => { calls++; return 'ready' })\ninit()  // → 'ready'  (fn called, calls === 1)\ninit()  // → 'ready'  (fn not called, calls still 1)\ninit()  // → 'ready'  (fn not called, calls still 1)\n```",
+      "whyMatters": "Closures are how JavaScript achieves private state without classes. makeOnce mirrors a real pattern — lazy initialization and one-time setup guards — where closure-captured state controls whether side effects run.",
+      "hints": [
+        "Declare let count = initial inside makeCounter before the return statement",
+        "All four methods can read and modify count because they share the same closure scope",
+        "makeOnce: declare two private variables inside — a boolean flag and a slot for the cached result; on the first call set the flag, store what fn returns, and return it; on every later call return the cached value directly"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "js-16",
+      "title": "Bring it together",
+      "topic": "01-javascript-essentials",
+      "level": 3,
+      "type": "file",
+      "description": "Write two functions that combine everything from this topic:\n\n`groupBy(items, keyFn)` — group strings into buckets based on a key function.\n  `groupBy([\"cat\", \"car\", \"dog\"], w => w.charAt(0))` → `{ c: [\"cat\", \"car\"], d: [\"dog\"] }`\n\n`summarize(students)` — given an array of `{ name, score }` objects:\n- Filter to those with score >= 50\n- Return `\"Passed: Alice, Bob (2/3)\"` — or `\"None passed (0/3)\"` if none pass",
+      "whyMatters": "groupBy and summarize are real utility functions — versions of both appear in dashboards, reports, and data pipelines across every codebase.",
+      "hints": [
+        "groupBy: use for...of — for each item, get its key, then push the item into the matching bucket. Start with an empty object {}",
+        "summarize: filter first, then .map() to get names, then join with \", \"",
+        "Check if the filtered array is empty to decide between the two output formats"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

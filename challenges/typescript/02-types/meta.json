@@ -1,0 +1,171 @@
+{
+  "id": "02-types",
+  "title": "The Type System",
+  "description": "TypeScript's core — annotating values, understanding inference, and thinking in types.",
+  "challenges": [
+    {
+      "id": "types-01",
+      "title": "What does a type annotation do?",
+      "topic": "02-types",
+      "level": 1,
+      "type": "terminal",
+      "description": "You write this in TypeScript:\n\n  let score: number = 100\n\nWhat does the `: number` part do?",
+      "whyMatters": "Understanding what an annotation actually is — a contract, not a cast — is the foundation everything else builds on.",
+      "hints": [
+        "An annotation tells TypeScript what type a value is — it doesn't change the value at runtime."
+      ],
+      "choices": [
+        {
+          "label": "Converts the value to a number at runtime",
+          "correct": false
+        },
+        {
+          "label": "Tells TypeScript what type the value is, so it can warn you if you use it wrong",
+          "correct": true
+        },
+        {
+          "label": "Makes the variable immutable",
+          "correct": false
+        },
+        {
+          "label": "Has no effect — TypeScript ignores it",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "types-02",
+      "title": "Annotate three variables",
+      "topic": "02-types",
+      "level": 1,
+      "type": "file",
+      "description": "Annotate each variable with the correct type.\n\nDo not change the values — only add the type annotations.\n\n  let username        = \"alice\"\n  let requestCount    = 0\n  let isAuthenticated = false",
+      "whyMatters": "Explicit annotations on variables make intent clear and catch accidental reassignments early.",
+      "hints": [
+        "The three primitive types in TypeScript are: string, number, boolean",
+        "Syntax: let name: string = \"value\""
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "types-03",
+      "title": "Annotate a function",
+      "topic": "02-types",
+      "level": 1,
+      "type": "file",
+      "description": "Write a function `formatPort` that accepts a port number and returns a string in the format `:8080`.\n\nAnnotate the parameter and return type explicitly.",
+      "whyMatters": "Annotating functions is the most common TypeScript task — it documents the contract and catches callers passing wrong types.",
+      "hints": [
+        "Parameter annotation: (port: number)",
+        "Return type goes after the closing paren: ): string",
+        "Embed the port directly in a template literal — the output format requires a colon character immediately before the number"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "types-04",
+      "title": "Union type parameter",
+      "topic": "02-types",
+      "level": 2,
+      "type": "file",
+      "description": "Write a function `formatId` that accepts an id which can be either a string or a number, and always returns a string.\n\n  formatId(42)      → \"42\"\n  formatId(\"abc\")   → \"abc\"",
+      "whyMatters": "IDs, config values, and API responses often arrive as string or number depending on the source. Union types model this exactly.",
+      "hints": [
+        "Parameter type: id: string | number",
+        "String() converts any primitive to a string"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "types-05",
+      "title": "Narrow with typeof",
+      "topic": "02-types",
+      "level": 2,
+      "type": "file",
+      "description": "Write a function `stringify` that accepts `string | number | boolean` and always returns a string.\n\n- If it's a string, return it as-is\n- If it's a number, return it with 2 decimal places (3 → \"3.00\")\n- If it's a boolean, return \"yes\" or \"no\"",
+      "whyMatters": "Narrowing with typeof is how you safely handle values from external sources that could be multiple types.",
+      "hints": [
+        "Use typeof to check each case: typeof value === \"string\"",
+        "toFixed(2) works on numbers",
+        "Use if / else if / else"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "types-06",
+      "title": "Literal return type",
+      "topic": "02-types",
+      "level": 2,
+      "type": "file",
+      "description": "Write a function `getDirection` that takes a number of degrees (0-359) and returns the compass direction as a literal type.\n\n  0-89   → \"north\"\n  90-179 → \"east\"\n  180-269 → \"south\"\n  270-359 → \"west\"\n\nThe return type must be the union: \"north\" | \"east\" | \"south\" | \"west\"",
+      "whyMatters": "Literal types make impossible states impossible — callers know exactly what values to expect, no magic strings.",
+      "hints": [
+        "Return type: ): \"north\" | \"east\" | \"south\" | \"west\"",
+        "Use if / else if chains for the degree ranges",
+        "Add a fallback return at the end to satisfy TypeScript"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "types-07",
+      "title": "Optional parameter",
+      "topic": "02-types",
+      "level": 3,
+      "type": "file",
+      "description": "Write a function `greet` that takes a name (string) and an optional title (string).\n\n  greet(\"Alice\")           → \"Hello, Alice\"\n  greet(\"Alice\", \"Dr.\")    → \"Hello, Dr. Alice\"",
+      "whyMatters": "Optional parameters are everywhere in real APIs — understanding how TypeScript handles them prevents a whole class of runtime errors.",
+      "hints": [
+        "The function body is a single conditional — when title is provided use one string format, when it is absent use the other",
+        "Check if title is defined before using it",
+        "When title is present, insert it with a trailing space before name; when absent nothing should appear — handle both cases inside the template literal"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "types-08",
+      "title": "Handle unknown safely",
+      "topic": "02-types",
+      "level": 3,
+      "type": "file",
+      "description": "Write a function `safeLength` that accepts a value of type `unknown` and returns its length as a number.\n\n  safeLength(\"hello\")   → 5\n  safeLength([1,2,3])   → 3\n  safeLength(42)        → 0  (not a string or array — return 0)",
+      "whyMatters": "unknown is the safe alternative to any when handling data from external sources like APIs, JSON, or user input.",
+      "hints": [
+        "typeof value === \"string\" narrows to string",
+        "Array.isArray(value) narrows to array",
+        "Return 0 as the fallback"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "types-09",
+      "title": "Bring it together",
+      "topic": "02-types",
+      "level": 3,
+      "type": "file",
+      "description": "Write a function `describeValue` that accepts `unknown` and returns a description string.\n\n  describeValue(\"hello\")   → \"string of length 5\"\n  describeValue(42)        → \"number: 42\"\n  describeValue(true)      → \"boolean: true\"\n  describeValue([1,2])     → \"array of length 2\"\n  describeValue({})        → \"object\"",
+      "whyMatters": "This pattern appears in loggers, debuggers, and serializers — anywhere you need to inspect a value you don't control.",
+      "hints": [
+        "Check Array.isArray first — arrays are also typeof \"object\"",
+        "typeof null === \"object\" — handle that if needed",
+        "typeof null === \"object\" — null is not included in the test cases for this challenge, so no null check is required"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

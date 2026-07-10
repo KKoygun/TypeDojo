@@ -1,0 +1,165 @@
+{
+  "id": "04-generics",
+  "title": "Generics",
+  "description": "Write functions and types that work across many types while preserving full type information.",
+  "challenges": [
+    {
+      "id": "generics-01",
+      "title": "What do generics solve?",
+      "topic": "04-generics",
+      "level": 1,
+      "type": "terminal",
+      "description": "What is the main advantage of `function identity<T>(v: T): T` over `function identity(v: any): any`?\n\n  A)  It runs faster at runtime\n  B)  The return type is known — TypeScript can check code that uses the result\n  C)  It prevents the function from being called with wrong arguments\n  D)  It removes the need for type annotations everywhere else",
+      "whyMatters": "Generics are the key to writing reusable, type-safe utilities — without them, you either duplicate code or lose type information.",
+      "hints": [
+        "Think about what TypeScript can tell you about the return value of each version"
+      ],
+      "choices": [
+        {
+          "label": "A)  It runs faster at runtime",
+          "correct": false
+        },
+        {
+          "label": "B)  The return type is known — TypeScript can check code that uses the result",
+          "correct": true
+        },
+        {
+          "label": "C)  It prevents the function from being called with wrong arguments",
+          "correct": false
+        },
+        {
+          "label": "D)  It removes the need for type annotations everywhere else",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "generics-02",
+      "title": "Identity and first element",
+      "topic": "04-generics",
+      "level": 1,
+      "type": "file",
+      "description": "Write a generic function `identity<T>(value: T): T` that returns whatever it receives.\n\nThen write `firstItem<T>(arr: T[]): T | undefined` that returns the first element of an array.",
+      "whyMatters": "Identity and first-element functions are the simplest generics — master the syntax here and every other generic will click faster.",
+      "hints": [
+        "Declare a type parameter between the function name and the parameter list using angle brackets — both the parameter type and return type should reference that same type parameter",
+        "Array element type: T[] means an array of T, so the first element is type T"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "generics-03",
+      "title": "Generic wrapper interface",
+      "topic": "04-generics",
+      "level": 1,
+      "type": "file",
+      "description": "Write a generic interface `Wrapper<T>` with a single field `value: T`.\n\nThen write:\n- `wrap<T>(value: T): Wrapper<T>` — wraps a value\n- `unwrap<T>(wrapped: Wrapper<T>): T` — returns the inner value",
+      "whyMatters": "The Wrapper pattern appears everywhere — Optional/Maybe types, Result<T, E> types, Promise internals. Learn the generic interface syntax here.",
+      "hints": [
+        "wrap needs to return an object literal that satisfies Wrapper<T> — the interface tells you what field name to use",
+        "unwrap accesses a field on the wrapped object — same as reading any property from an interface"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "generics-05",
+      "title": "Generic constraints",
+      "topic": "04-generics",
+      "level": 2,
+      "type": "file",
+      "description": "Write two constrained generic functions:\n\n`getLength<T extends { length: number }>(value: T): number` — returns the length of anything with a length property.\n\n`getLongest<T extends { length: number }>(a: T, b: T): T` — returns whichever of a or b is longer (return a if equal).",
+      "whyMatters": "Constraints let you narrow what T can be — essential when your function needs specific properties from T without losing the generic type.",
+      "hints": [
+        "The constraint is already written in the function signature — you just need to use the .length property in the body",
+        "getLongest compares two lengths and returns one of the inputs — a ternary expression fits well here"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "generics-04",
+      "title": "typeof and type predicates",
+      "topic": "04-generics",
+      "level": 2,
+      "type": "file",
+      "description": "Write `typeOf<T>(value: T): string` that returns the JavaScript typeof string for any value.\n\nThen write `isString(value: unknown): value is string` — a type predicate that narrows the type. Use `unknown` instead of a generic here — it accepts anything and is the correct type for narrowing.\n\nNote: for null, typeof returns 'object' — that's correct JavaScript behaviour.",
+      "whyMatters": "Type predicates are how generic code hands specific type knowledge back to the caller — TypeScript narrows the type in the if-branch automatically.",
+      "hints": [
+        "typeOf just needs the built-in typeof operator — the same one you use in plain JavaScript",
+        "isString returns a boolean — but the return type annotation is a type predicate, check the concept card"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "generics-06",
+      "title": "Generic API response",
+      "topic": "04-generics",
+      "level": 2,
+      "type": "file",
+      "description": "Write a generic interface `ApiResponse<T>` with:\n- `data: T`\n- `status: number`\n- `error?: string`\n\nThen write:\n- `success<T>(data: T): ApiResponse<T>` — creates a 200 response\n- `failure<T>(error: string): ApiResponse<T | null>` — creates a 500 response with null data",
+      "whyMatters": "ApiResponse<T> is the single most common generic interface you'll write — every typed HTTP client wraps responses this way.",
+      "hints": [
+        "Both functions return an object that satisfies ApiResponse — fill in the fields the interface requires",
+        "failure always has null data — look at the return type T | null to understand why that's valid"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "generics-07",
+      "title": "Multiple type parameters",
+      "topic": "04-generics",
+      "level": 2,
+      "type": "file",
+      "description": "Write three functions with multiple type parameters:\n\n`pair<A, B>(a: A, b: B): [A, B]` — creates a tuple from two values.\n\n`swap<A, B>(pair: [A, B]): [B, A]` — returns a new tuple with the two elements swapped.\n\n`mapFirst<A, B, C>(pair: [A, B], fn: (a: A) => C): [C, B]` — takes a tuple and a function. Calls the function with the first element, returns a new tuple with the result and the original second element unchanged.\n\nNote: `fn: (a: A) => C` means fn is a function you receive as a parameter — call it with `fn(something)` to get a value back.",
+      "whyMatters": "Multiple type parameters let you track multiple independent types through a transformation — tuples, Result<T, E>, and key-value pairs all need this.",
+      "hints": [
+        "All three functions return a tuple — a fixed-length array literal like [x, y]",
+        "mapFirst receives a function fn — call it with the first element to transform it, keep the second as-is"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "generics-08",
+      "title": "keyof and indexed access",
+      "topic": "04-generics",
+      "level": 3,
+      "type": "file",
+      "description": "Write two functions using `keyof`:\n\n`getProperty<T, K extends keyof T>(obj: T, key: K): T[K]` — safely reads any property.\n\n`pluck<T, K extends keyof T>(items: T[], key: K): T[K][]` — extracts a field from every object in an array.",
+      "whyMatters": "`keyof` is how you write type-safe property accessors and data extraction utilities — the kind you'd find in lodash, data mappers, or ORM layers.",
+      "hints": [
+        "getProperty: K is constrained to be a valid key of T, so obj[key] is type-safe — just return it",
+        "pluck is getProperty applied to every item in an array — use .map()"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "generics-09",
+      "title": "Bring it together",
+      "topic": "04-generics",
+      "level": 3,
+      "type": "file",
+      "description": "Write a generic `Repository<T extends { id: string }>` interface with:\n- `findById(id: string): T | undefined`\n- `findAll(): T[]`\n- `save(item: T): void`\n- `delete(id: string): boolean`\n\nThen write `createRepository<T extends { id: string }>(): Repository<T>` that stores items in memory using a Map.",
+      "whyMatters": "Generic repositories are one of the most common patterns in typed backends — you define the shape once and get a type-safe store for any entity.",
+      "hints": [
+        "Declare a Map<string, T> inside createRepository — it's the private store all four methods share via closure",
+        "Each method maps directly to one Map operation — check the concept card for the Map API"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "id": "09-advanced-types",
+  "title": "Advanced Types",
+  "description": "Mapped types, conditional types, template literal types, and infer — TypeScript's most powerful tools.",
+  "challenges": [
+    {
+      "id": "advanced-01",
+      "title": "Mapped types — transform every key",
+      "topic": "09-advanced-types",
+      "level": 1,
+      "type": "terminal",
+      "description": "What does this mapped type produce when given `{ host: string; port: number }`?\n\n  type Nullable<T> = { [K in keyof T]: T[K] | null }",
+      "whyMatters": "Mapped types let you transform entire interfaces at once — useful when modeling partial or nullable states of config objects from external sources.",
+      "hints": [
+        "[K in keyof T] iterates over every key, T[K] is the value type at that key"
+      ],
+      "choices": [
+        {
+          "label": "{ host: string | null; port: number | null }",
+          "correct": true
+        },
+        {
+          "label": "{ host: null; port: null }",
+          "correct": false
+        },
+        {
+          "label": "{ [key: string]: string | number | null }",
+          "correct": false
+        },
+        {
+          "label": "Same as Partial<T>",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "advanced-02",
+      "title": "Template literal types",
+      "topic": "09-advanced-types",
+      "level": 2,
+      "type": "terminal",
+      "description": "What type does this produce?\n\n  type Env = 'prod' | 'staging' | 'dev'\n  type EnvPrefix<T extends string> = `${Env}-${T}`\n\n  type Hosts = EnvPrefix<'api' | 'db'>",
+      "whyMatters": "Template literal types let you derive string union types from combinations — typed environment-prefixed service names, metric names, log tags.",
+      "hints": [
+        "Template literal types distribute over unions on both sides"
+      ],
+      "choices": [
+        {
+          "label": "'prod-api' | 'staging-api' | 'dev-api' | 'prod-db' | 'staging-db' | 'dev-db'",
+          "correct": true
+        },
+        {
+          "label": "'prod-api' | 'staging-db'",
+          "correct": false
+        },
+        {
+          "label": "`${Env}-${'api' | 'db'}` (unresolved)",
+          "correct": false
+        },
+        {
+          "label": "string",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "advanced-03",
+      "title": "Write a mapped type transformer",
+      "topic": "09-advanced-types",
+      "level": 2,
+      "type": "file",
+      "description": "Write these mapped type utilities (no use of built-in utility types allowed):\n\n1. `MyPartial<T>` — makes all properties optional\n2. `MyReadonly<T>` — makes all properties readonly\n3. `Nullable<T>` — makes all property values `T[K] | null`\n4. `Stringify<T>` — converts all property values to string\n\nThen write a function `toStrings<T extends Record<string, unknown>>(obj: T): Stringify<T>` that converts each value with String().",
+      "whyMatters": "Writing your own mapped types cements the mental model — and Stringify<T> is a real utility for serializing objects to query params or log lines.",
+      "hints": [
+        "Iterate over every key with the mapped type syntax and add ? to make each property optional — the value type stays as T[K]",
+        "Same mapped type iteration as MyPartial, but add readonly before each key instead of ? — the value type stays the same",
+        "Iterate over keys the same way but extend each value type to include null as a union member",
+        "Iterate over keys as usual but replace every value type with string — the original value type no longer matters on the right side",
+        "Iterate over the object entries, convert each value with String(), and rebuild an object from the resulting pairs — use the built-in pair of methods for entry extraction and reconstruction"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "advanced-04",
+      "title": "Conditional types",
+      "topic": "09-advanced-types",
+      "level": 3,
+      "type": "terminal",
+      "description": "What does this resolve to for `IsArray<string[]>` and `IsArray<number>`?\n\n  type IsArray<T> = T extends any[] ? 'yes' : 'no'",
+      "whyMatters": "Conditional types are how library authors write deeply generic utilities — understanding them helps you read TypeScript source code for tools you use.",
+      "hints": [
+        "T extends any[] checks if T is assignable to an array type"
+      ],
+      "choices": [
+        {
+          "label": "IsArray<string[]> = 'yes'  ·  IsArray<number> = 'no'",
+          "correct": true
+        },
+        {
+          "label": "Both resolve to boolean",
+          "correct": false
+        },
+        {
+          "label": "IsArray<string[]> = true  ·  IsArray<number> = false",
+          "correct": false
+        },
+        {
+          "label": "Compile error — conditional types need explicit extends",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "advanced-05",
+      "title": "Write conditional types for deep typing",
+      "topic": "09-advanced-types",
+      "level": 3,
+      "type": "file",
+      "description": "Write these conditional type utilities:\n\n1. `UnwrapPromise<T>` — if T is Promise<U>, return U; otherwise return T\n   - `UnwrapPromise<Promise<string>>` → `string`\n   - `UnwrapPromise<number>` → `number`\n\n2. `DeepReadonly<T>` — if T is an object, make all keys readonly AND recursively apply DeepReadonly to values; otherwise return T\n   - `DeepReadonly<{ a: { b: string } }>` → `{ readonly a: { readonly b: string } }`\n\nYou do not need to write runtime functions — only type aliases.",
+      "whyMatters": "UnwrapPromise is used when typing function wrappers. DeepReadonly is used to freeze config objects recursively — a common pattern for app-wide configuration.",
+      "hints": [
+        "Check if T extends Promise<something> — use infer to capture that something as a new type variable, then return it; if T is not a Promise return T unchanged",
+        "Check if T is an object — if so, create a mapped type where every key is readonly and every value is recursively wrapped in DeepReadonly; otherwise return T as-is",
+        "infer U inside extends captures what Promise wraps"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "advanced-06",
+      "title": "The infer keyword",
+      "topic": "09-advanced-types",
+      "level": 4,
+      "type": "terminal",
+      "description": "What does `infer` do in this type?\n\n  type FirstArg<T> = T extends (first: infer A, ...rest: any[]) => any ? A : never\n\n  type F = FirstArg<(host: string, port: number) => void>",
+      "whyMatters": "infer is how you extract type information from complex types — understanding it lets you read and write advanced utility types in real codebases.",
+      "hints": [
+        "infer captures a type in a conditional type's extends clause for use in the true branch"
+      ],
+      "choices": [
+        {
+          "label": "F = string",
+          "correct": true
+        },
+        {
+          "label": "F = [string, number]",
+          "correct": false
+        },
+        {
+          "label": "F = never",
+          "correct": false
+        },
+        {
+          "label": "F = (host: string, port: number) => void",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "advanced-07",
+      "title": "Build a typed event emitter shape",
+      "topic": "09-advanced-types",
+      "level": 5,
+      "type": "file",
+      "description": "Use mapped and template literal types to define a typed event emitter interface.\n\nGiven an event map:\n  `type Events = { connect: { host: string }; disconnect: { code: number }; error: { message: string } }`\n\nDerive:\n- `EventNames` — union of all keys: `'connect' | 'disconnect' | 'error'`\n- `Handler<E extends EventNames>` — a function type `(payload: Events[E]) => void`\n- `OnMethods` — an interface with a method for each event: `onConnect`, `onDisconnect`, `onError` — each accepting the correct Handler\n\nUse template literal types for the method names (`on${Capitalize<K>}`).\n\nYou only need to export the types, no runtime implementation.",
+      "whyMatters": "Typed event emitters are used in monitoring agents, log streamers, and Kubernetes watchers — getting the payload types right prevents silent runtime mismatches.",
+      "hints": [
+        "Derive the event name union from Events without listing names manually — the same operator used for all type-level key extraction works here",
+        "Handler is a function type parameterized over an event name — use indexed access on Events with E to get the correct payload type for each event",
+        "Iterate over EventNames with a mapped type and remap each key using a template literal type that prefixes 'on' and capitalizes the event name — the built-in Capitalize intrinsic handles capitalization",
+        "Capitalize<string> is a built-in intrinsic type"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

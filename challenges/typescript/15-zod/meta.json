@@ -1,0 +1,181 @@
+{
+  "id": "15-zod",
+  "title": "Zod & Schema Validation",
+  "description": "Runtime schema validation with Zod — parse, infer, compose, and transform with full type safety.",
+  "challenges": [
+    {
+      "id": "zod-01",
+      "title": "Why Zod over manual validation",
+      "topic": "15-zod",
+      "level": 1,
+      "type": "terminal",
+      "description": "What does Zod give you that manual validation (like the parseConfig from topic 09) does not?\n\n  import { z } from 'zod'\n  const ConfigSchema = z.object({ host: z.string(), port: z.number() })\n  type Config = z.infer<typeof ConfigSchema>",
+      "whyMatters": "Zod eliminates the gap between your TypeScript type and your runtime validator — they are the same thing. Manual validators drift from the type over time.",
+      "hints": [
+        "z.infer derives the TypeScript type from the schema — one source of truth"
+      ],
+      "choices": [
+        {
+          "label": "Zod is faster at runtime than manual checks",
+          "correct": false
+        },
+        {
+          "label": "Zod derives the TypeScript type from the schema automatically — type and validator are always in sync, and error messages are detailed by default",
+          "correct": true
+        },
+        {
+          "label": "Zod works at compile time; manual validation works at runtime",
+          "correct": false
+        },
+        {
+          "label": "Zod replaces TypeScript's type system entirely",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "zod-02",
+      "title": "parse vs safeParse",
+      "topic": "15-zod",
+      "level": 1,
+      "type": "terminal",
+      "description": "What is the difference between `schema.parse()` and `schema.safeParse()`?\n\n  const result = ConfigSchema.safeParse(input)\n  if (result.success) {\n    const config = result.data  // typed as Config\n  } else {\n    console.error(result.error.issues)\n  }",
+      "whyMatters": "safeParse is preferred in production tooling — it lets you handle validation errors gracefully instead of crashing with an uncaught exception.",
+      "hints": [
+        "parse throws on failure; safeParse returns a discriminated union result"
+      ],
+      "choices": [
+        {
+          "label": "They are identical — just aliases",
+          "correct": false
+        },
+        {
+          "label": "parse throws a ZodError on failure; safeParse returns { success: true, data } or { success: false, error }",
+          "correct": true
+        },
+        {
+          "label": "safeParse is slower because it does extra checks",
+          "correct": false
+        },
+        {
+          "label": "parse returns undefined on failure; safeParse throws",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "zod-03",
+      "title": "Zod schema types",
+      "topic": "15-zod",
+      "level": 2,
+      "type": "terminal",
+      "description": "Match each Zod method to what it validates:\n\n  z.string().min(1)       → ?\n  z.number().int().min(1) → ?\n  z.enum(['a', 'b'])      → ?\n  z.array(z.string())     → ?\n  z.optional(z.string())  → ?",
+      "whyMatters": "Knowing the Zod vocabulary lets you build schemas as fast as you can write TypeScript types.",
+      "hints": [
+        "Zod's fluent API chains validators — each method adds a constraint"
+      ],
+      "choices": [
+        {
+          "label": "non-empty string · positive integer · 'a'|'b' literal · string[] · string|undefined",
+          "correct": true
+        },
+        {
+          "label": "string · number · union · tuple · nullable string",
+          "correct": false
+        },
+        {
+          "label": "all return any — Zod is not type-safe",
+          "correct": false
+        },
+        {
+          "label": "string · float · string · array · required string",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "zod-04",
+      "title": "Write a Zod config schema",
+      "topic": "15-zod",
+      "level": 2,
+      "type": "file",
+      "description": "Write a Zod schema for this config and derive the TypeScript type from it:\n\n- `host`: non-empty string\n- `port`: integer between 1 and 65535\n- `logLevel`: one of 'debug' | 'info' | 'warn' | 'error'\n- `workers`: positive integer, optional, defaults to 1\n- `tags`: array of strings, optional, defaults to []\n\nExport:\n- `AppConfigSchema` — the Zod schema\n- `AppConfig` — the inferred TypeScript type (use z.infer)\n- `parseAppConfig(raw: unknown): AppConfig` — uses safeParse, throws with Zod's error message if invalid",
+      "whyMatters": "This replaces 60 lines of manual validation from topic 09 with ~10 lines of Zod. This is the pattern you'll use in every new service.",
+      "hints": [
+        "Use the string schema and chain a minimum-length validator to reject empty strings",
+        "Require an integer and chain both a minimum and maximum constraint to cover the valid port range",
+        "Use the Zod enum schema and pass the four allowed level strings as an array literal",
+        "Chain integer, positive, optional, and default validators in that order — the default fills in the value when the field is absent",
+        "result.error.message for the error string"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "zod-05",
+      "title": "Schema composition",
+      "topic": "15-zod",
+      "level": 3,
+      "type": "terminal",
+      "description": "What does each composition method do?\n\n  const Base = z.object({ id: z.string(), name: z.string() })\n\n  const Extended = Base.extend({ port: z.number() })\n  const Picked = Base.pick({ id: true })\n  const Partial = Base.partial()\n  const Merged = Base.merge(z.object({ port: z.number() }))",
+      "whyMatters": "Schema composition mirrors what utility types do at the type level — Zod brings the same power to the runtime layer.",
+      "hints": [
+        "extend adds fields, pick selects fields, partial makes all optional, merge combines two schemas"
+      ],
+      "choices": [
+        {
+          "label": "extend adds port · pick keeps only id · partial makes all optional · merge combines both schemas",
+          "correct": true
+        },
+        {
+          "label": "All four are identical to extend",
+          "correct": false
+        },
+        {
+          "label": "partial makes fields required · pick removes fields",
+          "correct": false
+        },
+        {
+          "label": "merge overwrites conflicting fields with the right schema",
+          "correct": false
+        }
+      ]
+    },
+    {
+      "id": "zod-06",
+      "title": "Schema transforms and refinements",
+      "topic": "15-zod",
+      "level": 3,
+      "type": "file",
+      "description": "Write Zod schemas with transforms and refinements:\n\n1. `PortSchema` — accepts a string or number, transforms to number, validates it's 1–65535\n   - `z.union([z.string(), z.number()])` → transform → refine\n\n2. `UrlSchema` — string that must start with 'http://' or 'https://'\n   - Use `.refine()` with a descriptive message\n\n3. `EnvSchema` — an object schema for environment variables (all string inputs):\n   - `PORT`: use PortSchema\n   - `API_URL`: use UrlSchema  \n   - `LOG_LEVEL`: transform to lowercase, then validate against allowed values\n   - `DEBUG`: string '0'|'1', transform to boolean\n\nExport each schema and the inferred `Env` type.",
+      "whyMatters": "Transforms are essential for env var parsing — everything comes in as a string and needs to become the right type. Refinements catch business-rule violations that basic types can't express.",
+      "hints": [
+        "Accept either a string or number input, transform to a number, then refine to validate the port range — chain all three steps",
+        "Start with a string schema and add a refinement that checks both protocol prefixes — provide a descriptive message in the refinement options",
+        "Add a transform to the DEBUG field that converts the string to a boolean — decide on the truthy string value and return the comparison result"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    },
+    {
+      "id": "zod-07",
+      "title": "Build a validated config loader with Zod",
+      "topic": "15-zod",
+      "level": 4,
+      "type": "file",
+      "description": "Build a complete config loading system:\n\n`DeploymentSchema` — validates a deployment manifest:\n- `name`: non-empty string\n- `image`: string matching pattern `name:tag` (use refine + regex)\n- `replicas`: integer 1–20\n- `env`: optional record of string to string\n- `resources`: optional object with `cpu` (string) and `memory` (string)\n\n`loadDeployments(raw: unknown): Deployment[]` — validates an array of deployment manifests, throws with all validation errors if any fail (not just the first)\n\n`validateAndSummarize(raw: unknown): string` — returns `'N valid deployments: name1, name2, ...'` or throws with error details.\n\nExport `DeploymentSchema`, `Deployment` (inferred type), and both functions.",
+      "whyMatters": "Validating arrays of deployment manifests — from YAML, JSON API, or stdin — is a daily software engineering task. Collecting all errors (not just the first) is critical for good developer experience.",
+      "hints": [
+        "Use a regex method to enforce the name:tag format — the pattern must match a name segment, a colon, and a tag segment with allowed characters",
+        "Model the env field as a record schema where both keys and values are strings",
+        "Wrap DeploymentSchema in an array schema to validate a list of deployments — safeParse will validate every element",
+        "The ZodError contains an array of individual issue objects — each has a message field; map over them and join to produce a single error string"
+      ],
+      "solutionFile": "solution.ts",
+      "templateFile": "template.ts",
+      "testFile": "tests.ts"
+    }
+  ]
+}

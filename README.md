@@ -1,36 +1,37 @@
 # TypeDojo
 
-A terminal-based TypeScript learning curriculum — from first types to advanced patterns.
+A terminal-based TypeScript learning curriculum — from JavaScript fundamentals to advanced patterns.
 
-129 challenges across 18 topics. Difficulty ramps gradually within each topic. AI-assisted code review is available on-demand with a free Gemini API key.
+154 challenges across 19 topics. Difficulty ramps gradually within each topic. AI-assisted code review is available on-demand with a free Gemini API key.
 
 ## Topics
 
 | # | Topic | Challenges |
 |---|---|---|
-| 01 | The Type System | 6 |
-| 02 | Interfaces & Object Shapes | 6 |
-| 03 | Generics | 7 |
-| 04 | Async & Promises | 9 |
-| 05 | Utility Types | 8 |
-| 06 | Error Handling | 8 |
-| 07 | Modules & Tooling | 5 |
-| 08 | Advanced Types | 7 |
-| 09 | Runtime Tooling | 7 |
-| 10 | Production Patterns | 9 |
-| 11 | Classes & OOP | 7 |
-| 12 | Enums, Tuples & Const Assertions | 7 |
-| 13 | Type Guards & Declaration Merging | 7 |
-| 14 | Zod & Schema Validation | 7 |
-| 15 | Testing & Node.js Streams | 7 |
-| 16 | Intersection Types & Function Overloads | 7 |
-| 17 | Sync Generators & Iterators | 7 |
-| 18 | Structural Typing, satisfies & Index Signatures | 8 |
+| 01 | JavaScript Essentials | 16 |
+| 02 | The Type System | 9 |
+| 03 | Interfaces & Object Shapes | 9 |
+| 04 | Generics | 9 |
+| 05 | Async & Promises | 9 |
+| 06 | Utility Types | 9 |
+| 07 | Error Handling | 8 |
+| 08 | Modules & Tooling | 5 |
+| 09 | Advanced Types | 7 |
+| 10 | Runtime Tooling | 7 |
+| 11 | Production Patterns | 9 |
+| 12 | Classes & OOP | 7 |
+| 13 | Enums, Tuples & Const Assertions | 7 |
+| 14 | Type Guards & Declaration Merging | 7 |
+| 15 | Zod & Schema Validation | 7 |
+| 16 | Testing & Node.js Streams | 7 |
+| 17 | Intersection Types & Function Overloads | 7 |
+| 18 | Sync Generators & Iterators | 7 |
+| 19 | Structural Typing, satisfies & Index Signatures | 8 |
 
 ## Getting started
 
 ```bash
-git clone <repo>
+git clone https://github.com/KKoygun/TypeDojo
 cd typescript-game
 npm install
 npm run learn
@@ -51,7 +52,7 @@ npm run map            # see full progress overview
 **File** — edit a solution file in your editor, then run `npm run check <id>` to validate.
 
 ```
-challenges/typescript/01-types/types-04/
+challenges/typescript/02-types/types-04/
   template.ts   ← copied to solution.ts on first run
   solution.ts   ← you edit this (gitignored)
   tests.ts      ← automated test cases
@@ -81,4 +82,4 @@ Progress is saved locally in `.progress.json`. Delete it to start over.
 
 - TypeScript + ts-node
 - Chalk + Inquirer for the terminal UI
-- Gemini 1.5 Flash for AI evaluation (swappable — see `src/ai/`)
+- Gemini 3.1 Flash Lite for AI evaluation (free tier — swappable, see `src/ai/`)
