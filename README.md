@@ -32,7 +32,7 @@ A terminal-based TypeScript learning curriculum — from JavaScript fundamentals
 
 ```bash
 git clone https://github.com/KKoygun/TypeDojo
-cd typescript-game
+cd TypeDojo
 npm install
 npm run learn
 ```
