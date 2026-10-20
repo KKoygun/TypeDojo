@@ -8,7 +8,8 @@
     "check": "ts-node src/runner/check.ts",
     "map": "ts-node src/runner/map.ts",
     "build": "tsc",
-    "readme": "ts-node src/tools/readme.ts"
+    "readme": "ts-node src/tools/readme.ts",
+    "validate": "ts-node src/tools/validate.ts"
   },
   "keywords": [
     "typescript",
