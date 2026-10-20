@@ -7,9 +7,9 @@ import { loadCurriculum, allChallengeIds, isPreview } from "../curriculum"
 import { loadProgress, saveProgress, markComplete, isUnlocked } from "../progress"
 import { runCheck } from "./checkChallenge"
 import { Challenge, TopicMeta } from "../types"
-import { createAIProvider } from "../ai"
+import { createTutor } from "../ai"
 
-const ai = createAIProvider()
+const ai = createTutor()
 const shownConcepts = new Set<string>()
 
 function clearScreen(): void {

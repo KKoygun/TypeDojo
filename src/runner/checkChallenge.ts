@@ -3,13 +3,13 @@ import * as fs from "fs"
 import * as path from "path"
 import inquirer from "inquirer"
 import { loadProgress, saveProgress, markComplete } from "../progress"
-import { createAIProvider } from "../ai"
+import { createTutor } from "../ai"
 import { Challenge } from "../types"
 import { compileCheck, runTests } from "./grader"
 
 export { compileCheck, runTests } from "./grader"
 
-const ai = createAIProvider()
+const ai = createTutor()
 
 async function offerInsight(challenge: Challenge, solutionPath: string, errorOutput: string): Promise<"retry" | "done" | "skip"> {
   const baseChoices = ai
