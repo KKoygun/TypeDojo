@@ -16,10 +16,18 @@ const ROOT = path.join(__dirname, "../..")
 export const REFERENCE_DIR = path.join(ROOT, "reference")
 const SCRATCH_DIR = path.join(ROOT, ".validate")
 
+// Challenges that teach something a runtime test cannot observe. Their untouched template
+// is allowed to pass the tests; the compile step and AI approach evaluation grade them instead.
+// Listed here so the gap is visible in every validate run rather than silently skipped.
+export const RUNTIME_UNTESTABLE: Record<string, string> = {
+  "types-02": "annotation-only: the template already holds the right values, and let infers the same types the learner is asked to write",
+}
+
 export interface ValidationResult {
   id: string
   ok: boolean
   problems: string[]
+  notes: string[]
   testsPassed: number
 }
 
@@ -45,7 +53,7 @@ function firstLine(output: string): string {
 }
 
 export function validateChallenge(c: Challenge): ValidationResult {
-  const result: ValidationResult = { id: c.id, ok: false, problems: [], testsPassed: 0 }
+  const result: ValidationResult = { id: c.id, ok: false, problems: [], notes: [], testsPassed: 0 }
   const ref = referencePath(c)
   if (!fs.existsSync(ref)) {
     result.problems.push(`no reference solution at ${path.relative(ROOT, ref)}`)
@@ -76,7 +84,13 @@ export function validateChallenge(c: Challenge): ValidationResult {
     // (b) template must fail, and must fail at runtime, not only because it does not type-check
     fs.copyFileSync(path.join(dir, "template.ts"), solution)
     const templateRun = runTests(tests, solution, { transpileOnly: true })
-    if (templateRun.ok) result.problems.push("untouched template passes the tests — tests are vacuous")
+    if (templateRun.ok) {
+      const reason = RUNTIME_UNTESTABLE[c.id]
+      if (reason) result.notes.push(`template passes by design (${reason})`)
+      else result.problems.push("untouched template passes the tests — tests are vacuous")
+    } else if (RUNTIME_UNTESTABLE[c.id]) {
+      result.problems.push("listed in RUNTIME_UNTESTABLE but the template now fails — remove it from the list")
+    }
   } finally {
     fs.rmSync(dir, { recursive: true, force: true })
   }
@@ -102,7 +116,10 @@ function main(): void {
   const failures: ValidationResult[] = []
   for (const c of challenges) {
     const r = validateChallenge(c)
-    if (r.ok) {
+    if (r.ok && r.notes.length) {
+      console.log(`  note  ${c.id.padEnd(16)} reference passes ${r.testsPassed} tests`)
+      for (const n of r.notes) console.log(`          ${n}`)
+    } else if (r.ok) {
       console.log(`  ok    ${c.id.padEnd(16)} reference passes ${r.testsPassed} tests, template fails`)
     } else {
       failures.push(r)
