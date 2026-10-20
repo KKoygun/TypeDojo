@@ -2,6 +2,7 @@
   "id": "02-types",
   "title": "The Type System",
   "description": "TypeScript's core — annotating values, understanding inference, and thinking in types.",
+  "status": "validated",
   "challenges": [
     {
       "id": "types-01",

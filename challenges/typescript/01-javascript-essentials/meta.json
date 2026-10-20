@@ -2,6 +2,7 @@
   "id": "01-javascript-essentials",
   "title": "JavaScript Essentials",
   "description": "The JavaScript foundations TypeScript is built on — variables, functions, arrays, objects, and more.",
+  "status": "validated",
   "challenges": [
     {
       "id": "js-01",

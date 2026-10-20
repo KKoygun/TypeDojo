@@ -2,31 +2,44 @@
 
 A terminal-based TypeScript learning curriculum — from JavaScript fundamentals to advanced patterns.
 
-154 challenges across 19 topics. Difficulty ramps gradually within each topic. AI-assisted code review is available on-demand with a free Gemini API key.
+Difficulty ramps gradually within each topic. AI-assisted code review is available on-demand with a free Gemini API key.
+
+<!-- generated:topics:start -->
+154 challenges across 19 topics. 52 challenges in 5 topics are validated; the other 102 are drafts, shown as "preview" in the app.
+
+## Status
+
+| Status | Topics | Challenges |
+|---|---|---|
+| Validated | 5 | 52 |
+| Draft (preview) | 14 | 102 |
+
+**Validated** means every coding challenge in the topic has a reference solution that passes its tests, and the untouched template fails them. `npm run validate` checks this in CI. **Draft** topics are playable but have not been through that check and may change.
 
 ## Topics
 
-| # | Topic | Challenges |
-|---|---|---|
-| 01 | JavaScript Essentials | 16 |
-| 02 | The Type System | 9 |
-| 03 | Interfaces & Object Shapes | 9 |
-| 04 | Generics | 9 |
-| 05 | Async & Promises | 9 |
-| 06 | Utility Types | 9 |
-| 07 | Error Handling | 8 |
-| 08 | Modules & Tooling | 5 |
-| 09 | Advanced Types | 7 |
-| 10 | Runtime Tooling | 7 |
-| 11 | Production Patterns | 9 |
-| 12 | Classes & OOP | 7 |
-| 13 | Enums, Tuples & Const Assertions | 7 |
-| 14 | Type Guards & Declaration Merging | 7 |
-| 15 | Zod & Schema Validation | 7 |
-| 16 | Testing & Node.js Streams | 7 |
-| 17 | Intersection Types & Function Overloads | 7 |
-| 18 | Sync Generators & Iterators | 7 |
-| 19 | Structural Typing, satisfies & Index Signatures | 8 |
+| # | Topic | Challenges | Status |
+|---|---|---|---|
+| 01 | JavaScript Essentials | 16 | validated |
+| 02 | The Type System | 9 | validated |
+| 03 | Interfaces & Object Shapes | 9 | validated |
+| 04 | Generics | 9 | validated |
+| 05 | Async & Promises | 9 | validated |
+| 06 | Utility Types | 9 | preview |
+| 07 | Error Handling | 8 | preview |
+| 08 | Modules & Tooling | 5 | preview |
+| 09 | Advanced Types | 7 | preview |
+| 10 | Runtime Tooling | 7 | preview |
+| 11 | Production Patterns | 9 | preview |
+| 12 | Classes & OOP | 7 | preview |
+| 13 | Enums, Tuples & Const Assertions | 7 | preview |
+| 14 | Type Guards & Declaration Merging | 7 | preview |
+| 15 | Zod & Schema Validation | 7 | preview |
+| 16 | Testing & Node.js Streams | 7 | preview |
+| 17 | Intersection Types & Function Overloads | 7 | preview |
+| 18 | Sync Generators & Iterators | 7 | preview |
+| 19 | Structural Typing, satisfies & Index Signatures | 8 | preview |
+<!-- generated:topics:end -->
 
 ## Getting started
 

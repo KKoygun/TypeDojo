@@ -2,6 +2,7 @@
   "id": "04-generics",
   "title": "Generics",
   "description": "Write functions and types that work across many types while preserving full type information.",
+  "status": "validated",
   "challenges": [
     {
       "id": "generics-01",
