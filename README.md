@@ -14,7 +14,7 @@ Difficulty ramps gradually within each topic. AI-assisted code review is availab
 | Validated | 5 | 52 |
 | Draft (preview) | 14 | 102 |
 
-**Validated** means every coding challenge in the topic has a reference solution that passes its tests, and the untouched template fails them. `npm run validate` checks this in CI. **Draft** topics are playable but have not been through that check and may change.
+**Validated** means every coding challenge in the topic has a reference solution (in `reference/`) that passes its tests, and the untouched template fails them. `npm run validate` checks this in CI. Exception: `types-02` only asks for type annotations, which a runtime test cannot see, so the compile step and the AI review grade it instead. **Draft** topics are playable but have not been through that check and may change.
 
 ## Topics
 

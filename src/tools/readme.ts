@@ -5,10 +5,19 @@ import * as fs from "fs"
 import * as path from "path"
 import { loadCurriculum, statusSummary, topicStatus } from "../curriculum"
 import { TopicMeta } from "../types"
+import { RUNTIME_UNTESTABLE } from "./validate"
 
 const README = path.join(__dirname, "../../README.md")
 const START = "<!-- generated:topics:start -->"
 const END = "<!-- generated:topics:end -->"
+
+function exceptionNote(): string {
+  const ids = Object.keys(RUNTIME_UNTESTABLE)
+  if (ids.length === 0) return ""
+  const list = ids.map((id) => "`" + id + "`").join(", ")
+  return `Exception: ${list} only asks for type annotations, which a runtime test cannot see, ` +
+    "so the compile step and the AI review grade it instead. "
+}
 
 export function renderTopics(curriculum: TopicMeta[]): string {
   const { validated, draft } = statusSummary(curriculum)
@@ -25,8 +34,9 @@ export function renderTopics(curriculum: TopicMeta[]): string {
     `| Validated | ${validated.topics} | ${validated.challenges} |`,
     `| Draft (preview) | ${draft.topics} | ${draft.challenges} |`,
     "",
-    "**Validated** means every coding challenge in the topic has a reference solution that passes its tests, " +
-      "and the untouched template fails them. `npm run validate` checks this in CI. " +
+    "**Validated** means every coding challenge in the topic has a reference solution (in `reference/`) " +
+      "that passes its tests, and the untouched template fails them. `npm run validate` checks this in CI. " +
+      exceptionNote() +
       "**Draft** topics are playable but have not been through that check and may change.",
     "",
     "## Topics",
