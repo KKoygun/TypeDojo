@@ -1,0 +1,89 @@
+{
+  "about": "Known-good and known-bad solutions for the AI approach evaluation. Every case passes its challenge's runtime tests (npm run ai:eval -- --check proves this), so the expected verdict is the AI's job alone.",
+  "cases": [
+    {
+      "name": "good-types-02-annotated",
+      "challenge": "types-02",
+      "expected": "PASS",
+      "reason": "All three variables carry the explicit annotations the challenge asks for."
+    },
+    {
+      "name": "bad-types-02-no-annotations",
+      "challenge": "types-02",
+      "expected": "FAIL",
+      "reason": "Untouched template: values are right but no annotations were written, which the evaluator prompt says is a FAIL."
+    },
+    {
+      "name": "bad-types-03-hardcoded",
+      "challenge": "types-03",
+      "expected": "FAIL",
+      "reason": "Returns hardcoded strings for the three tested ports instead of formatting the input."
+    },
+    {
+      "name": "good-interfaces-04-template-literal",
+      "challenge": "interfaces-04",
+      "expected": "PASS",
+      "reason": "Builds the URL with a template literal from config; the evaluator prompt names this as not hardcoding."
+    },
+    {
+      "name": "good-generics-03-typed",
+      "challenge": "generics-03",
+      "expected": "PASS",
+      "reason": "Wrapper<T> stores value: T, so wrap and unwrap preserve the type."
+    },
+    {
+      "name": "bad-generics-03-any",
+      "challenge": "generics-03",
+      "expected": "FAIL",
+      "reason": "Wrapper<T> declares value: any, which throws away the type the challenge is about."
+    },
+    {
+      "name": "good-js-14-for-of",
+      "challenge": "js-14",
+      "expected": "PASS",
+      "reason": "sumOf and longestWord use for...of as asked; pipeline chains filter then map."
+    },
+    {
+      "name": "bad-js-14-reduce",
+      "challenge": "js-14",
+      "expected": "FAIL",
+      "reason": "Uses reduce where the challenge explicitly asks for for...of loops."
+    },
+    {
+      "name": "good-async-05-promise-all",
+      "challenge": "async-05",
+      "expected": "PASS",
+      "reason": "fetchAll runs the three fetches in parallel with Promise.all."
+    },
+    {
+      "name": "bad-async-05-sequential",
+      "challenge": "async-05",
+      "expected": "FAIL",
+      "reason": "Awaits the fetches one after another instead of using Promise.all."
+    },
+    {
+      "name": "good-async-06-allsettled",
+      "challenge": "async-06",
+      "expected": "PASS",
+      "reason": "Uses Promise.allSettled and maps rejected pings to ok: false."
+    },
+    {
+      "name": "bad-async-06-promise-all",
+      "challenge": "async-06",
+      "expected": "FAIL",
+      "reason": "Uses Promise.all, so one rejected ping would fail the whole check; the tests never make ping reject."
+    },
+    {
+      "name": "good-async-08-abort-controller",
+      "challenge": "async-08",
+      "expected": "PASS",
+      "reason": "Creates an AbortController, sets the timeout, and clears it in finally."
+    },
+    {
+      "name": "bad-async-08-no-timeout",
+      "challenge": "async-08",
+      "expected": "FAIL",
+      "reason": "Passes a signal that is never aborted: no timeout and no clearTimeout, so nothing is enforced."
+    }
+  ]
+}

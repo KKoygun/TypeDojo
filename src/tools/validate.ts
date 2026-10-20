@@ -14,7 +14,7 @@ import { Challenge, TopicMeta } from "../types"
 
 const ROOT = path.join(__dirname, "../..")
 export const REFERENCE_DIR = path.join(ROOT, "reference")
-const SCRATCH_DIR = path.join(ROOT, ".validate")
+export const SCRATCH_DIR = path.join(ROOT, ".validate")
 
 // Challenges that teach something a runtime test cannot observe. Their untouched template
 // is allowed to pass the tests; the compile step and AI approach evaluation grade them instead.
@@ -36,7 +36,7 @@ export function referencePath(c: Challenge): string {
 }
 
 // Copy the challenge folder (tests.ts plus any helper files) without the learner's solution.ts
-function makeSandbox(c: Challenge): string {
+export function makeSandbox(c: Challenge): string {
   const src = path.join(CHALLENGES_DIR, c.topic, c.id)
   const dest = path.join(SCRATCH_DIR, c.id)
   fs.rmSync(dest, { recursive: true, force: true })
