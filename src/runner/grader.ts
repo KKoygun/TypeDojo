@@ -37,11 +37,11 @@ function formatTestOutput(raw: string): string {
 }
 
 function env(opts: GradeOptions, extra: Record<string, string> = {}): NodeJS.ProcessEnv {
-  return {
-    ...process.env,
-    ...extra,
-    ...(opts.transpileOnly ? { TS_NODE_TRANSPILE_ONLY: "true" } : {}),
-  }
+  const vars: NodeJS.ProcessEnv = { ...process.env, ...extra }
+  // Never inherit transpile-only from the parent: a type check must really type-check
+  if (opts.transpileOnly) vars.TS_NODE_TRANSPILE_ONLY = "true"
+  else delete vars.TS_NODE_TRANSPILE_ONLY
+  return vars
 }
 
 export function compileCheck(solutionPath: string, opts: GradeOptions = {}): GradeResult {

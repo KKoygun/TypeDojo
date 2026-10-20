@@ -4,3 +4,4 @@ dist/
 challenges/**/solution.ts
 .env
 .validate/
+.test-tmp/

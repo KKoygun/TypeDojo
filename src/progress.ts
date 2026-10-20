@@ -2,7 +2,12 @@ import * as fs from "fs"
 import * as path from "path"
 import { Progress } from "./types"
 
-const PROGRESS_FILE = path.join(__dirname, "../.progress.json")
+const DEFAULT_PROGRESS_FILE = path.join(__dirname, "../.progress.json")
+
+// TYPEDOJO_PROGRESS_FILE lets tests use a scratch file instead of the learner's real progress
+function progressFile(): string {
+  return process.env.TYPEDOJO_PROGRESS_FILE ?? DEFAULT_PROGRESS_FILE
+}
 
 const defaultProgress = (): Progress => ({
   completed: {},
@@ -12,16 +17,17 @@ const defaultProgress = (): Progress => ({
 })
 
 export function loadProgress(): Progress {
-  if (!fs.existsSync(PROGRESS_FILE)) return defaultProgress()
+  const file = progressFile()
+  if (!fs.existsSync(file)) return defaultProgress()
   try {
-    return JSON.parse(fs.readFileSync(PROGRESS_FILE, "utf-8"))
+    return JSON.parse(fs.readFileSync(file, "utf-8"))
   } catch {
     return defaultProgress()
   }
 }
 
 export function saveProgress(p: Progress): void {
-  fs.writeFileSync(PROGRESS_FILE, JSON.stringify(p, null, 2))
+  fs.writeFileSync(progressFile(), JSON.stringify(p, null, 2))
 }
 
 export function markComplete(id: string, result: "pass" | "skip"): void {
