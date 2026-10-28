@@ -4,7 +4,7 @@
 
 A terminal-based TypeScript learning curriculum — from JavaScript fundamentals to advanced patterns.
 
-Difficulty ramps gradually within each topic. AI-assisted code review is available on-demand with a free Gemini API key.
+Difficulty ramps gradually within each topic. AI-assisted code review is available on demand with a free Groq or Gemini key, a paid Claude or OpenAI key, or a local Ollama model.
 
 <!-- generated:topics:start -->
 154 challenges across 19 topics. 52 challenges in 5 topics are validated; the other 102 are drafts, shown as "preview" in the app.
@@ -77,24 +77,35 @@ challenges/typescript/02-types/types-04/
 
 ## AI features (optional)
 
-Copy `.env.example` to `.env` and add a Gemini API key:
+Copy `.env.example` to `.env`, then set the provider, its key and a model:
 
 ```bash
 cp .env.example .env
-# edit .env and add your key
+# edit .env: AI_PROVIDER, that provider's key, AI_MODEL
+npm run models          # lists the models your key can use; npm run models -- llama filters them
 ```
 
-With a key enabled, file challenges gain two extra features after the test cases run:
+| `AI_PROVIDER` | Key | Cost |
+|---|---|---|
+| `groq` (default) | `GROQ_API_KEY` | free tier |
+| `gemini` | `GEMINI_API_KEY` | free tier |
+| `claude` | `ANTHROPIC_API_KEY` | paid API |
+| `openai` | `OPENAI_API_KEY` | paid API |
+| `ollama` | none, runs on your machine (`OLLAMA_HOST` if not on localhost:11434) | free |
+
+Each provider reads its own key, so one `.env` can hold several and `AI_PROVIDER` picks between them. **There is no default model:** `AI_MODEL` is sent as written, nothing falls back to another model, and if it is missing the app says so and keeps AI off. Providers retire models over time; when that happens the call fails with the model's name, and `npm run models` shows what to use instead.
+
+With AI enabled, file challenges gain these features after the test cases run:
 
 - **AI approach evaluation** — checks that you solved it the right way, not just that the output matches
 - **AI insight** — if you're stuck, request specific feedback on your actual code
 - **Ask AI** — ask a question about the challenge without getting the answer handed to you
 
-The Gemini free tier is more than enough — the entire curriculum uses under 100k tokens even with heavy use of insights.
+A free tier is enough: each review is one short request.
 
 ### How reliable is the AI review?
 
-`evals/approach/` holds 14 hand-labelled solutions (7 good, 7 bad). All 14 pass their challenge's runtime tests, so only the AI review can tell them apart. `npm run ai:record` runs them against Gemini and reports how often it agrees with the labels; `npm run ai:eval` replays those recordings offline. No recordings are committed yet, so there is no agreement figure to quote. See [evals/approach/README.md](evals/approach/README.md).
+`evals/approach/` holds 14 hand-labelled solutions (7 good, 7 bad). All 14 pass their challenge's runtime tests, so only the AI review can tell them apart. `npm run ai:record` runs them against the configured `AI_PROVIDER` / `AI_MODEL` and saves the responses per provider; `npm run ai:eval` replays every recorded provider offline and reports how often each agrees with the labels. No recordings are committed yet, so there is no agreement figure to quote. See [evals/approach/README.md](evals/approach/README.md).
 
 ## Progress
 
@@ -120,7 +131,7 @@ CI runs all of these on every push. How the pieces fit together: [docs/ARCHITECT
 - TypeScript + ts-node
 - Chalk + Inquirer for the terminal UI
 - Zod for the challenge metadata schema
-- Gemini 3.1 Flash Lite for AI evaluation (free tier). The provider sits behind a small interface in `src/ai/`, so another model is one new class.
+- AI review through Groq, Gemini, Claude, OpenAI or a local Ollama model, behind one small interface in `src/ai/`. No SDKs: each backend is a short class over `fetch`, tested with a fake `fetch`.
 
 ## License
 

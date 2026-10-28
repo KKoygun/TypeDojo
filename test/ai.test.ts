@@ -2,9 +2,8 @@ import { test, describe, after } from "node:test"
 import assert from "node:assert/strict"
 import { AIProvider } from "../src/ai/provider"
 import { Tutor, parseVerdict, loadPrompt } from "../src/ai/tutor"
-import { GeminiProvider } from "../src/ai/providers/gemini"
 import { RecordingProvider, ReplayProvider, NoRecordingError } from "../src/ai/recording"
-import { createProvider } from "../src/ai"
+import { recordedProviders } from "../src/ai"
 import { scratchDir, removeDir } from "./helpers"
 
 class FakeProvider implements AIProvider {
@@ -66,29 +65,6 @@ describe("Tutor", () => {
   })
 })
 
-describe("GeminiProvider", () => {
-  test("posts the prompt to the configured model and returns the text", async () => {
-    let sent: { url: string; body: string } | undefined
-    const gemini = new GeminiProvider("test-key", async (url, body) => {
-      sent = { url, body }
-      return JSON.stringify({ candidates: [{ content: { parts: [{ text: "PASS fine" }] } }] })
-    })
-    assert.equal(await gemini.generate("hello"), "PASS fine")
-    assert.match(sent!.url, /models\/gemini-3\.1-flash-lite:generateContent\?key=test-key$/)
-    assert.deepEqual(JSON.parse(sent!.body), { contents: [{ parts: [{ text: "hello" }] }] })
-  })
-
-  test("turns an API error body into a thrown error", async () => {
-    const gemini = new GeminiProvider("k", async () => JSON.stringify({ error: { code: 429, message: "quota" } }))
-    await assert.rejects(gemini.generate("x"), /Gemini API error 429: quota/)
-  })
-
-  test("falls back to a fixed message when there is no candidate", async () => {
-    const gemini = new GeminiProvider("k", async () => "{}")
-    assert.equal(await gemini.generate("x"), "No response from AI.")
-  })
-})
-
 describe("record and replay", () => {
   const dir = scratchDir("cassettes")
   after(() => removeDir(dir))
@@ -113,20 +89,21 @@ describe("record and replay", () => {
   })
 })
 
-describe("createProvider", () => {
-  const savedKey = process.env.GEMINI_API_KEY
-  after(() => {
-    if (savedKey === undefined) delete process.env.GEMINI_API_KEY
-    else process.env.GEMINI_API_KEY = savedKey
+describe("recordedProviders", () => {
+  const dir = scratchDir("recorded")
+  after(() => removeDir(dir))
+
+  test("finds one replay provider per recorded backend and model, with no key", async () => {
+    await new RecordingProvider(new FakeProvider(["PASS a"]), `${dir}/fake`).generate("p1")
+    await new RecordingProvider(Object.assign(new FakeProvider(["FAIL b"]), { name: "other", model: "o-2" }), `${dir}/other`).generate("p2")
+
+    const found = recordedProviders(dir).map((p) => `${p.name}/${p.model}`).sort()
+    assert.deepEqual(found, ["fake/fake-1", "other/o-2"])
+    const fake = recordedProviders(dir).find((p) => p.name === "fake")!
+    assert.equal(await fake.generate("p1"), "PASS a")
   })
 
-  test("live mode without a key disables AI", () => {
-    delete process.env.GEMINI_API_KEY
-    assert.equal(createProvider("live"), null)
-  })
-
-  test("replay mode needs no key", () => {
-    delete process.env.GEMINI_API_KEY
-    assert.ok(createProvider("replay") instanceof ReplayProvider)
+  test("returns nothing when there are no recordings", () => {
+    assert.deepEqual(recordedProviders(`${dir}/does-not-exist`), [])
   })
 })

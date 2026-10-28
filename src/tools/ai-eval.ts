@@ -1,12 +1,12 @@
 // Measures how often the AI approach evaluation agrees with a hand-labelled golden set.
-//   npm run ai:eval                 replay saved responses (offline, no key) and report agreement
+//   npm run ai:eval                 replay every recorded provider (offline, no key) and report agreement for each
 //   npm run ai:eval -- --check      no AI: prove every case compiles and passes its runtime tests
-//   npm run ai:record               call the real model, save responses, report agreement (needs GEMINI_API_KEY)
-//   npm run ai:eval -- --live       call the real model without saving anything
+//   npm run ai:record               call AI_PROVIDER / AI_MODEL, save responses, report agreement
+//   npm run ai:eval -- --live       call AI_PROVIDER / AI_MODEL without saving anything
 import * as dotenv from "dotenv"
 import * as fs from "fs"
 import * as path from "path"
-import { AIMode, createProvider, DEFAULT_CASSETTE_DIR } from "../ai"
+import { AIMode, AIProvider, createProvider, DEFAULT_CASSETTE_DIR, recordedProviders, resolveProvider } from "../ai"
 import { ReplayProvider } from "../ai/recording"
 import { evaluatePrompt, Tutor } from "../ai/tutor"
 import { loadCurriculum, topicStatus } from "../curriculum"
@@ -80,13 +80,11 @@ function checkPremise(cases: GoldenCase[]): number {
   return broken
 }
 
-async function evaluate(cases: GoldenCase[], mode: AIMode, delayMs: number): Promise<number> {
-  const provider = createProvider(mode)
-  if (!provider) {
-    console.error("GEMINI_API_KEY is not set. Add it to .env to record or run live.")
-    return 1
-  }
+// Grades every case with one provider and prints the table. Returns how many cases had no recording.
+async function evaluate(cases: GoldenCase[], provider: AIProvider, delayMs: number): Promise<number> {
+  console.log(`── ${provider.name} · ${provider.model}\n`)
   const tutor = new Tutor(provider)
+  const offline = provider instanceof ReplayProvider
   const rows: Row[] = []
 
   for (const [i, g] of cases.entries()) {
@@ -96,7 +94,7 @@ async function evaluate(cases: GoldenCase[], mode: AIMode, delayMs: number): Pro
       rows.push({ name: g.name, expected: g.expected, got: "missing" })
       continue
     }
-    if (mode !== "replay" && i > 0) await sleep(delayMs) // stay under free-tier rate limits
+    if (!offline && i > 0) await sleep(delayMs) // stay under free-tier rate limits
     const result = await tutor.evaluate(description, code)
     rows.push({ name: g.name, expected: g.expected, got: result.pass ? "PASS" : "FAIL" })
   }
@@ -115,9 +113,9 @@ async function evaluate(cases: GoldenCase[], mode: AIMode, delayMs: number): Pro
   }
   if (missing) {
     console.log(`${missing}/${rows.length} cases have no recorded response for the current prompts. Run: npm run ai:record`)
-    return 1
   }
-  return 0
+  console.log()
+  return missing
 }
 
 async function main(): Promise<void> {
@@ -130,14 +128,32 @@ async function main(): Promise<void> {
     process.exit(broken ? 1 : 0)
   }
 
-  const mode: AIMode = args.includes("--record") ? "record" : args.includes("--live") ? "live" : "replay"
-  if (mode !== "replay") dotenv.config({ quiet: true })
   const delayArg = args.find((a) => a.startsWith("--delay-ms="))
   const delayMs = delayArg ? Number(delayArg.split("=")[1]) : 4500
 
-  console.log(`AI approach eval · ${cases.length} cases · mode: ${mode}` +
-    (mode === "replay" ? ` (recordings in ${path.relative(process.cwd(), DEFAULT_CASSETTE_DIR)})` : "") + "\n")
-  process.exit(await evaluate(cases, mode, delayMs))
+  if (args.includes("--record") || args.includes("--live")) {
+    const mode: AIMode = args.includes("--record") ? "record" : "live"
+    dotenv.config({ quiet: true })
+    const resolved = resolveProvider()
+    const provider = createProvider(mode)
+    if ("disabled" in resolved || !provider) {
+      console.error(`Can't run the eval: ${"disabled" in resolved ? resolved.disabled : "no provider"}`)
+      process.exit(1)
+    }
+    console.log(`AI approach eval · ${cases.length} cases · mode: ${mode}\n`)
+    await evaluate(cases, provider, delayMs)
+    process.exit(0)
+  }
+
+  const recorded = recordedProviders()
+  console.log(`AI approach eval · ${cases.length} cases · replaying recordings in ${path.relative(process.cwd(), DEFAULT_CASSETTE_DIR)}\n`)
+  if (recorded.length === 0) {
+    console.log("No recordings yet. Run: npm run ai:record")
+    process.exit(1)
+  }
+  let missing = 0
+  for (const provider of recorded) missing += await evaluate(cases, provider, delayMs)
+  process.exit(missing ? 1 : 0)
 }
 
 if (require.main === module) main().catch((e) => {

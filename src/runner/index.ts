@@ -7,7 +7,7 @@ import { loadCurriculum, allChallengeIds, isPreview } from "../curriculum"
 import { loadProgress, saveProgress, markComplete, isUnlocked } from "../progress"
 import { runCheck } from "./checkChallenge"
 import { Challenge, TopicMeta } from "../types"
-import { createTutor } from "../ai"
+import { createTutor, resolveProvider } from "../ai"
 
 const ai = createTutor()
 const shownConcepts = new Set<string>()
@@ -391,8 +391,11 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
-  if (!ai) {
-    console.log(chalk.dim("  AI features disabled (set GEMINI_API_KEY to enable insights)\n"))
+  const resolved = resolveProvider()
+  if ("disabled" in resolved) {
+    console.log(chalk.dim(`  AI features disabled: ${resolved.disabled}\n`))
+  } else {
+    console.log(chalk.dim(`  AI review: ${resolved.provider.name} · ${resolved.provider.model}\n`))
   }
 
   console.log(chalk.dim("  Tip: run 'npm run map' to see your full progress tree\n"))
