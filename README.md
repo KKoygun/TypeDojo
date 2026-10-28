@@ -105,7 +105,14 @@ A free tier is enough: each review is one short request.
 
 ### How reliable is the AI review?
 
-`evals/approach/` holds 14 hand-labelled solutions (7 good, 7 bad). All 14 pass their challenge's runtime tests, so only the AI review can tell them apart. `npm run ai:record` runs them against the configured `AI_PROVIDER` / `AI_MODEL` and saves the responses per provider; `npm run ai:eval` replays every recorded provider offline and reports how often each agrees with the labels. No recordings are committed yet, so there is no agreement figure to quote. See [evals/approach/README.md](evals/approach/README.md).
+`evals/approach/` holds 14 hand-labelled solutions (7 good, 7 bad). All 14 pass their challenge's runtime tests, so only the AI review can tell them apart. `npm run ai:record` runs them against the configured `AI_PROVIDER` / `AI_MODEL` and saves the responses per provider; `npm run ai:eval` replays every recorded provider offline and reports how often each agrees with the labels.
+
+| Provider · model | Agreement | Bad let through | Good rejected |
+|---|---|---|---|
+| groq · `openai/gpt-oss-120b` | 14/14 | 0 | 0 |
+| gemini · `gemini-3.1-flash-lite` | 14/14 | 0 | 0 |
+
+The first run agreed on 11/14. The three misses turned out to be a prompt flaw (the reviewer never saw the starter template) and two challenge bugs, which were fixed before re-recording. So 14/14 means the reviewer and these cases now agree, not that it is right on any solution. The details and the limits are in [evals/approach/README.md](evals/approach/README.md#results).
 
 ## Progress
 
