@@ -9,7 +9,7 @@ import * as path from "path"
 import { AIMode, AIProvider, createProvider, DEFAULT_CASSETTE_DIR, recordedProviders, resolveProvider } from "../ai"
 import { ReplayProvider } from "../ai/recording"
 import { evaluatePrompt, Tutor } from "../ai/tutor"
-import { loadCurriculum, topicStatus } from "../curriculum"
+import { CHALLENGES_DIR, loadCurriculum, topicStatus } from "../curriculum"
 import { compileCheck, runTests } from "../runner/grader"
 import { Challenge } from "../types"
 import { makeSandbox, SCRATCH_DIR } from "./validate"
@@ -88,14 +88,16 @@ async function evaluate(cases: GoldenCase[], provider: AIProvider, delayMs: numb
   const rows: Row[] = []
 
   for (const [i, g] of cases.entries()) {
-    const description = findChallenge(g.challenge).description
+    const challenge = findChallenge(g.challenge)
+    const description = challenge.description
+    const starter = fs.readFileSync(path.join(CHALLENGES_DIR, challenge.topic, challenge.id, "template.ts"), "utf-8")
     const code = fs.readFileSync(caseFile(g), "utf-8")
-    if (provider instanceof ReplayProvider && !provider.has(evaluatePrompt(description, code))) {
+    if (provider instanceof ReplayProvider && !provider.has(evaluatePrompt(description, code, starter))) {
       rows.push({ name: g.name, expected: g.expected, got: "missing" })
       continue
     }
     if (!offline && i > 0) await sleep(delayMs) // stay under free-tier rate limits
-    const result = await tutor.evaluate(description, code)
+    const result = await tutor.evaluate(description, code, starter)
     rows.push({ name: g.name, expected: g.expected, got: result.pass ? "PASS" : "FAIL" })
   }
 

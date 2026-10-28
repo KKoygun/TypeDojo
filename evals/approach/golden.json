@@ -53,7 +53,7 @@
       "name": "good-async-05-promise-all",
       "challenge": "async-05",
       "expected": "PASS",
-      "reason": "fetchAll runs the three fetches in parallel with Promise.all."
+      "reason": "Each fetch resolves after a short delay and fetchAll runs them in parallel with Promise.all."
     },
     {
       "name": "bad-async-05-sequential",

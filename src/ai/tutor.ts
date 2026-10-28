@@ -21,8 +21,13 @@ export function parseVerdict(response: string): EvalResult {
   return { pass, feedback }
 }
 
-export function evaluatePrompt(challengeDescription: string, solutionCode: string): string {
-  return `${loadPrompt("evaluate")}\n\n---\n\nCHALLENGE:\n${challengeDescription}\n\nSOLUTION:\n${solutionCode}\n\nEvaluate the solution approach.`
+// The starter template is included so the reviewer does not blame the student for what it
+// already contained (an `export`, a signature, a comment). The golden set caught exactly that.
+export function evaluatePrompt(challengeDescription: string, solutionCode: string, starterCode?: string): string {
+  const starter = starterCode?.trim()
+    ? `\n\nSTARTER CODE (given to the student; anything already in it is not their choice):\n${starterCode.trim()}`
+    : ""
+  return `${loadPrompt("evaluate")}\n\n---\n\nCHALLENGE:\n${challengeDescription}${starter}\n\nSOLUTION:\n${solutionCode}\n\nEvaluate the solution approach.`
 }
 
 export function insightPrompt(challengeDescription: string, solutionCode: string, errorOutput: string): string {
@@ -52,8 +57,8 @@ export function askPrompt(question: string, code?: string, challengeDescription?
 export class Tutor {
   constructor(readonly provider: AIProvider) {}
 
-  async evaluate(challengeDescription: string, solutionCode: string): Promise<EvalResult> {
-    return parseVerdict(await this.provider.generate(evaluatePrompt(challengeDescription, solutionCode)))
+  async evaluate(challengeDescription: string, solutionCode: string, starterCode?: string): Promise<EvalResult> {
+    return parseVerdict(await this.provider.generate(evaluatePrompt(challengeDescription, solutionCode, starterCode)))
   }
 
   insight(challengeDescription: string, solutionCode: string, errorOutput: string): Promise<string> {

@@ -108,7 +108,8 @@ export async function runCheck(challenge: Challenge): Promise<"pass" | "fail" | 
   if (ai) {
     process.stdout.write("  Evaluating approach... ")
     const code = fs.readFileSync(solutionPath, "utf-8")
-    const result = await ai.evaluate(challenge.description, code)
+    const starter = fs.existsSync(templatePath) ? fs.readFileSync(templatePath, "utf-8") : undefined
+    const result = await ai.evaluate(challenge.description, code, starter)
     if (!result.pass) {
       console.log(chalk.red("✗"))
       console.log(chalk.yellow(`\n  ${result.feedback}\n`))

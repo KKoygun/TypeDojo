@@ -42,6 +42,20 @@ describe("Tutor", () => {
     assert.match(prompt, /SOLUTION:\nexport function wrap\(\) \{\}/)
   })
 
+  test("evaluate shows the starter template, marked as not the student's choice", async () => {
+    const fake = new FakeProvider(["PASS ok"])
+    await new Tutor(fake).evaluate("Annotate x", "export let x: number = 1", "export let x = 1")
+    const prompt = fake.prompts[0]!
+    assert.match(prompt, /STARTER CODE \(given to the student; anything already in it is not their choice\):\nexport let x = 1/)
+    assert.ok(prompt.indexOf("STARTER CODE") < prompt.indexOf("SOLUTION:"))
+  })
+
+  test("evaluate leaves the starter section out when there is no template", async () => {
+    const fake = new FakeProvider(["PASS ok"])
+    await new Tutor(fake).evaluate("desc", "code")
+    assert.ok(!fake.prompts[0]!.includes("STARTER CODE"))
+  })
+
   test("insight does not use the strict evaluator prompt", async () => {
     const fake = new FakeProvider(["Try a generic."])
     assert.equal(await new Tutor(fake).insight("desc", "code", "TS2322"), "Try a generic.")

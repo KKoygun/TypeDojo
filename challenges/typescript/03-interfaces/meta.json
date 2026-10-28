@@ -72,7 +72,7 @@
       "topic": "03-interfaces",
       "level": 2,
       "type": "file",
-      "description": "Write an interface `ServiceConfig` with:\n- `host` (string, required)\n- `port` (number, required)\n- `timeout` (number, optional)\n- `retries` (number, optional)\n\nThen write `buildUrl(config: ServiceConfig): string` that returns `\"http://localhost:8080\"`.",
+      "description": "Write an interface `ServiceConfig` with:\n- `host` (string, required)\n- `port` (number, required)\n- `timeout` (number, optional)\n- `retries` (number, optional)\n\nThen write `buildUrl(config: ServiceConfig): string` that builds the URL from the config: `{ host: \"localhost\", port: 8080 }` → `\"http://localhost:8080\"`.",
       "whyMatters": "Optional config fields are everywhere — timeouts, retry counts, feature flags. TypeScript makes it explicit which fields can be absent.",
       "hints": [
         "Use ? for optional properties: timeout?: number",
