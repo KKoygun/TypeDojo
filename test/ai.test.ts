@@ -50,6 +50,15 @@ describe("Tutor", () => {
     assert.ok(prompt.indexOf("STARTER CODE") < prompt.indexOf("SOLUTION:"))
   })
 
+  test("CRLF files give the same prompt as LF files, so recordings match on every OS", async () => {
+    const fake = new FakeProvider(["PASS a", "PASS b"])
+    const tutor = new Tutor(fake)
+    await tutor.evaluate("desc", "const a = 1\r\nconst b = 2\r\n", "// start\r\n")
+    await tutor.evaluate("desc", "const a = 1\nconst b = 2\n", "// start\n")
+    assert.ok(!fake.prompts[0]!.includes("\r"))
+    assert.equal(fake.prompts[0], fake.prompts[1])
+  })
+
   test("evaluate leaves the starter section out when there is no template", async () => {
     const fake = new FakeProvider(["PASS ok"])
     await new Tutor(fake).evaluate("desc", "code")

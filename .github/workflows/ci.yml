@@ -36,3 +36,8 @@ jobs:
       # No AI calls: proves every golden case passes its runtime tests
       - name: Golden set premise
         run: npm run ai:eval -- --check
+
+      # No AI calls, no keys: replays the committed recordings. Fails if a prompt,
+      # case or challenge changed and the recordings were not re-made.
+      - name: Golden set agreement (recorded)
+        run: npm run ai:eval

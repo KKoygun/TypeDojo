@@ -9,7 +9,7 @@ export function loadPrompt(name: "evaluate" | "ask"): string {
   const file = path.join(PROMPTS_DIR, `${name}.md`)
   // A missing evaluator prompt would quietly change how solutions are graded, so fail loudly
   if (!fs.existsSync(file)) throw new Error(`AI prompt not found: ${file}`)
-  return fs.readFileSync(file, "utf-8")
+  return lf(fs.readFileSync(file, "utf-8"))
 }
 
 // The evaluator is told to start with PASS or FAIL. Models sometimes wrap it in
@@ -27,7 +27,13 @@ export function evaluatePrompt(challengeDescription: string, solutionCode: strin
   const starter = starterCode?.trim()
     ? `\n\nSTARTER CODE (given to the student; anything already in it is not their choice):\n${starterCode.trim()}`
     : ""
-  return `${loadPrompt("evaluate")}\n\n---\n\nCHALLENGE:\n${challengeDescription}${starter}\n\nSOLUTION:\n${solutionCode}\n\nEvaluate the solution approach.`
+  return lf(`${loadPrompt("evaluate")}\n\n---\n\nCHALLENGE:\n${challengeDescription}${starter}\n\nSOLUTION:\n${solutionCode}\n\nEvaluate the solution approach.`)
+}
+
+// Files read on a Windows checkout can have CRLF endings. Prompts are normalised to LF so the
+// same solution gives the same prompt, and the same recording key, on every OS.
+export function lf(text: string): string {
+  return text.replace(/\r\n/g, "\n")
 }
 
 export function insightPrompt(challengeDescription: string, solutionCode: string, errorOutput: string): string {
@@ -58,14 +64,18 @@ export class Tutor {
   constructor(readonly provider: AIProvider) {}
 
   async evaluate(challengeDescription: string, solutionCode: string, starterCode?: string): Promise<EvalResult> {
-    return parseVerdict(await this.provider.generate(evaluatePrompt(challengeDescription, solutionCode, starterCode)))
+    return parseVerdict(await this.send(evaluatePrompt(challengeDescription, solutionCode, starterCode)))
   }
 
   insight(challengeDescription: string, solutionCode: string, errorOutput: string): Promise<string> {
-    return this.provider.generate(insightPrompt(challengeDescription, solutionCode, errorOutput))
+    return this.send(insightPrompt(challengeDescription, solutionCode, errorOutput))
   }
 
   ask(question: string, code?: string, challengeDescription?: string): Promise<string> {
-    return this.provider.generate(askPrompt(question, code, challengeDescription))
+    return this.send(askPrompt(question, code, challengeDescription))
+  }
+
+  private send(prompt: string): Promise<string> {
+    return this.provider.generate(lf(prompt))
   }
 }

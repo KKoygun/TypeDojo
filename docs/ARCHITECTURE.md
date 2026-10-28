@@ -74,7 +74,7 @@ flowchart LR
 | `npm run readme -- --check` | The README topic table and status counts match the metadata. |
 | `npm test` | The loader, grader, progress store, README generator, schema check and AI layer work as described, using fixtures and a fake provider. |
 | `npm run ai:eval -- --check` | Every golden-set case passes its runtime tests, so the expected verdicts depend on the AI review alone. |
-| `npm run ai:eval` | How often the AI review agrees with the golden set, for each recorded provider and model. Needs recordings from `npm run ai:record`; not run in CI. |
+| `npm run ai:eval` | How often the AI review agrees with the golden set, for each recorded provider and model. CI replays the committed recordings with no key; it fails if a prompt, case or challenge changed and nobody re-recorded. Prompts are normalised to LF, so a recording made on Windows matches on Linux. |
 
 ## Known limits
 
