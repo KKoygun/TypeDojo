@@ -3,13 +3,13 @@ import chalk from "chalk"
 import inquirer from "inquirer"
 import * as path from "path"
 import * as fs from "fs"
-import { loadCurriculum, allChallengeIds } from "../curriculum"
+import { loadCurriculum, allChallengeIds, isPreview } from "../curriculum"
 import { loadProgress, saveProgress, markComplete, isUnlocked } from "../progress"
 import { runCheck } from "./checkChallenge"
 import { Challenge, TopicMeta } from "../types"
-import { createAIProvider } from "../ai"
+import { createTutor } from "../ai"
 
-const ai = createAIProvider()
+const ai = createTutor()
 const shownConcepts = new Set<string>()
 
 function clearScreen(): void {
@@ -260,7 +260,8 @@ async function selectTopic(curriculum: TopicMeta[]): Promise<TopicMeta | null> {
     const done = passed === total
     const icon = done ? chalk.green("✓") : locked ? chalk.dim("🔒") : chalk.white("○")
     const stats = chalk.dim(`${passed}/${total}${skipped > 0 ? ` · ${skipped} skipped` : ""}`)
-    const label = `${icon}  ${topic.title}  ${stats}`
+    const preview = isPreview(topic) ? chalk.magenta("  [preview]") : ""
+    const label = `${icon}  ${topic.title}  ${stats}${preview}`
     return { name: locked ? chalk.dim(label) : label, value: locked ? null : topic }
   })
 
@@ -280,6 +281,11 @@ async function selectTopic(curriculum: TopicMeta[]): Promise<TopicMeta | null> {
 async function selectChallenge(curriculum: TopicMeta[]): Promise<void> {
   const topic = await selectTopic(curriculum)
   if (!topic) return await selectChallenge(curriculum)
+
+  if (isPreview(topic) && !shownConcepts.has(topic.id)) {
+    console.log(chalk.magenta(`\n  ${topic.title} is a preview topic — its challenges have not been validated yet and may change.\n`))
+    await inquirer.prompt([{ type: "input", name: "_", message: chalk.dim("Press Enter to continue...") }])
+  }
 
   // Show concept card once per topic per session
   if (!shownConcepts.has(topic.id)) {

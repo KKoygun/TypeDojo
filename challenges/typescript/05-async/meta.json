@@ -2,6 +2,7 @@
   "id": "05-async",
   "title": "Async & Promises",
   "description": "Type asynchronous operations with Promise<T>, async/await, and parallel execution patterns.",
+  "status": "validated",
   "challenges": [
     {
       "id": "async-01",

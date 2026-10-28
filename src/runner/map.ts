@@ -1,5 +1,5 @@
 import chalk from "chalk"
-import { loadCurriculum, allChallengeIds } from "../curriculum"
+import { loadCurriculum, allChallengeIds, isPreview, statusSummary } from "../curriculum"
 import { loadProgress, isUnlocked } from "../progress"
 
 function main(): void {
@@ -12,7 +12,8 @@ function main(): void {
   console.log()
 
   for (const topic of curriculum) {
-    console.log(chalk.bold(`  ${topic.title}`))
+    const preview = isPreview(topic) ? chalk.magenta("  [preview]") : ""
+    console.log(chalk.bold(`  ${topic.title}`) + preview)
     for (const c of topic.challenges) {
       const unlocked = isUnlocked(c.id, allIds, progress, { topic: topic.id })
       const done = progress.completed[c.id]
@@ -31,7 +32,9 @@ function main(): void {
   const total = allIds.length
   const passed = Object.values(progress.completed).filter((v) => v === "pass").length
   const skipped = Object.values(progress.completed).filter((v) => v === "skip").length
-  console.log(chalk.dim(`  ${passed}/${total} passed · ${skipped} skipped · ${progress.insightsUsed} AI insights used\n`))
+  const { validated, draft } = statusSummary(curriculum)
+  console.log(chalk.dim(`  ${passed}/${total} passed · ${skipped} skipped · ${progress.insightsUsed} AI insights used`))
+  console.log(chalk.dim(`  Validated: ${validated.challenges} challenges in ${validated.topics} topics · Preview: ${draft.challenges} challenges in ${draft.topics} topics\n`))
 }
 
 main()

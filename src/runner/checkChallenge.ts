@@ -1,61 +1,15 @@
 import chalk from "chalk"
 import * as fs from "fs"
 import * as path from "path"
-import { execSync } from "child_process"
 import inquirer from "inquirer"
 import { loadProgress, saveProgress, markComplete } from "../progress"
-import { createAIProvider } from "../ai"
+import { createTutor } from "../ai"
 import { Challenge } from "../types"
+import { compileCheck, runTests } from "./grader"
 
-const ai = createAIProvider()
+export { compileCheck, runTests } from "./grader"
 
-function cleanError(raw: string): string {
-  return raw
-    .split("\n")
-    .filter(l => /error TS\d+/.test(l) || (l.trim().startsWith("error") && !l.includes("node_modules")))
-    .map(l => "  " + l.trim())
-    .join("\n")
-}
-
-export function compileCheck(solutionPath: string): { ok: boolean; output: string } {
-  try {
-    execSync(`npx ts-node ${solutionPath}`, { encoding: "utf-8", stdio: "pipe" })
-    return { ok: true, output: "" }
-  } catch (e: any) {
-    const raw = ((e.stdout ?? "") + (e.stderr ?? "")) || (e.message ?? "")
-    return { ok: false, output: cleanError(raw) || raw.split("\n").filter((l: string) => l.trim() && !l.includes("node_modules")).slice(0, 3).join("\n") }
-  }
-}
-
-function formatTestOutput(raw: string): string {
-  return raw
-    .split("\n")
-    .map(line => {
-      const m = line.match(/^(\s*FAIL:[^→]+)→\s*(".*?")\s*\(expected\s*(".*?")\)/)
-      if (m) {
-        const pad = " ".repeat(m[1]!.replace(/\S.*/, "").length + 6)
-        return `${m[1]!.trimEnd()}\n${pad}got:      ${m[2]}\n${pad}expected: ${m[3]}`
-      }
-      return line
-    })
-    .join("\n")
-}
-
-export function runTests(testFile: string, solutionPath: string): { ok: boolean; output: string } {
-  try {
-    const output = execSync(`ts-node ${testFile}`, {
-      encoding: "utf-8",
-      stdio: "pipe",
-      env: { ...process.env, SOLUTION_PATH: solutionPath },
-    })
-    return { ok: true, output }
-  } catch (e: any) {
-    const raw = ((e.stdout ?? "") + (e.stderr ?? "")) || (e.message ?? "")
-    const cleaned = cleanError(raw)
-    const testOut = formatTestOutput(raw.split("\n").filter((l: string) => !l.includes("node_modules") && l.trim()).join("\n"))
-    return { ok: false, output: cleaned || testOut }
-  }
-}
+const ai = createTutor()
 
 async function offerInsight(challenge: Challenge, solutionPath: string, errorOutput: string): Promise<"retry" | "done" | "skip"> {
   const baseChoices = ai

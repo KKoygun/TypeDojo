@@ -3,3 +3,5 @@ dist/
 .progress.json
 challenges/**/solution.ts
 .env
+.validate/
+.test-tmp/

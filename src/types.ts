@@ -24,10 +24,15 @@ export interface Challenge {
   testFile?: string
 }
 
+// validated: every file challenge has a reference solution that passes `npm run validate`
+// draft: content exists but has not been through that check yet (shown as "preview")
+export type TopicStatus = "validated" | "draft"
+
 export interface TopicMeta {
   id: string
   title: string
   description: string
+  status?: TopicStatus
   challenges: Challenge[]
 }
 

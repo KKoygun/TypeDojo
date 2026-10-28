@@ -2,6 +2,7 @@
   "id": "03-interfaces",
   "title": "Interfaces & Object Shapes",
   "description": "Model data structures with interfaces — the backbone of typed configs, API responses, and domain objects.",
+  "status": "validated",
   "challenges": [
     {
       "id": "interfaces-01",
