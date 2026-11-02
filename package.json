@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.test.json",
     "ai:eval": "ts-node src/tools/ai-eval.ts",
     "ai:record": "ts-node src/tools/ai-eval.ts --record",
-    "check:meta": "ts-node src/tools/check-meta.ts"
+    "check:meta": "ts-node src/tools/check-meta.ts",
+    "models": "ts-node src/tools/models.ts"
   },
   "keywords": [
     "typescript",

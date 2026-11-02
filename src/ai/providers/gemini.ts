@@ -1,40 +1,35 @@
-import * as https from "https"
-import { AIProvider } from "../provider"
+import { ChatProvider, Fetch } from "./base"
 
-export const GEMINI_MODEL = "gemini-3.1-flash-lite"
+const API = "https://generativelanguage.googleapis.com/v1beta"
 
-export type HttpPost = (url: string, body: string) => Promise<string>
-
-const httpsPost: HttpPost = (url, body) =>
-  new Promise((resolve, reject) => {
-    const parsed = new URL(url)
-    const req = https.request(
-      { hostname: parsed.hostname, path: parsed.pathname + parsed.search, method: "POST",
-        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) } },
-      (res) => {
-        let data = ""
-        res.on("data", (c) => (data += c))
-        res.on("end", () => resolve(data))
-      }
-    )
-    req.on("error", reject)
-    req.write(body)
-    req.end()
-  })
-
-export class GeminiProvider implements AIProvider {
+// Free tier. Key: https://aistudio.google.com/apikey
+// The key goes in a header rather than the URL, so it never shows up in an error message.
+export class GeminiProvider extends ChatProvider {
   readonly name = "gemini"
-  readonly model = GEMINI_MODEL
 
-  // post is injectable so tests can check the request without a network call
-  constructor(private apiKey: string, private post: HttpPost = httpsPost) {}
+  constructor(private apiKey: string, model: string, fetchFn?: Fetch) {
+    super(model, fetchFn)
+  }
 
-  async generate(prompt: string): Promise<string> {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`
-    const body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    const raw = await this.post(url, body)
-    const json = JSON.parse(raw)
-    if (json?.error) throw new Error(`Gemini API error ${json.error.code}: ${json.error.message}`)
-    return json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response from AI."
+  private get auth() {
+    return { "x-goog-api-key": this.apiKey }
+  }
+
+  async listModels(): Promise<string[]> {
+    const body = (await this.request(`${API}/models?pageSize=1000`, { headers: this.auth })) as {
+      models?: { name: string; supportedGenerationMethods?: string[] }[]
+    }
+    return (body.models ?? [])
+      .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+      .map((m) => m.name.replace(/^models\//, ""))
+  }
+
+  protected async send(prompt: string): Promise<string> {
+    const body = (await this.postJson(
+      `${API}/models/${this.model}:generateContent`,
+      { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1 } },
+      this.auth
+    )) as { candidates?: { content?: { parts?: { text?: string }[] } }[] }
+    return body.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response from AI."
   }
 }

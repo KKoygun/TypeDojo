@@ -1,12 +1,17 @@
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
 export async function fetchName(): Promise<string> {
+  await delay(50)
   return "Alice"
 }
 
 export async function fetchAge(): Promise<number> {
+  await delay(50)
   return 30
 }
 
 export async function fetchRole(): Promise<string> {
+  await delay(50)
   return "admin"
 }
 

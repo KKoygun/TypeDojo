@@ -20,7 +20,8 @@ flowchart LR
   subgraph AI["AI layer (src/ai)"]
     tutor["Tutor<br/>prompts + verdict parsing"]
     iface["AIProvider interface"]
-    gemini["GeminiProvider"]
+    factory["resolveProvider<br/>AI_PROVIDER · AI_MODEL"]
+    backends["ChatProvider backends<br/>Groq · OpenAI · Gemini · Claude · Ollama"]
     replay["Record / Replay providers"]
   end
 
@@ -36,7 +37,8 @@ flowchart LR
   files --> grader
   runner --> progress
   runner --> tutor --> iface
-  iface --> gemini
+  factory --> backends
+  iface --> backends
   iface --> replay
 
   validate --> grader
@@ -57,10 +59,11 @@ flowchart LR
 **Progress store** (`src/progress.ts`) is a JSON file, `.progress.json`, holding results per challenge id, the last challenge seen, and which topics were unlocked at onboarding. `TYPEDOJO_PROGRESS_FILE` points it elsewhere, which the tests use.
 
 **AI layer** (`src/ai/`):
-- `AIProvider` is the only thing a model backend implements: `generate(prompt) → text`.
-- `GeminiProvider` is the one real backend. Its HTTP call can be injected, so tests check the request without a network call.
+- `AIProvider` is the only thing the rest of the app sees: `generate(prompt) → text`.
+- `ChatProvider` (`providers/base.ts`) is the shared base for the real backends. It refuses to call without a model and turns a 404 into "no such model, run `npm run models`". Each backend only implements `send()` and `listModels()`: Groq and OpenAI share one chat-completions class, plus Gemini, Claude and Ollama. They use plain `fetch`, no SDKs, and the `fetch` is injectable, so tests check every request without a network call.
+- `resolveProvider` (`src/ai/index.ts`) picks the backend from `AI_PROVIDER` (default `groq`), its own key variable and `AI_MODEL`. There is no default model; when something is missing it returns the reason, which the app prints, and AI stays off.
 - `Tutor` knows what to ask (`evaluate`, `insight`, `ask`), loads the prompts from `src/ai/prompts/`, and parses the PASS/FAIL verdict. The app only ever calls `createTutor()`.
-- `RecordingProvider` and `ReplayProvider` save and replay responses keyed by provider, model and exact prompt, so evals run offline and a changed prompt never reuses a stale answer.
+- `RecordingProvider` and `ReplayProvider` save and replay responses keyed by provider, model and exact prompt, one folder per provider under `evals/approach/cassettes/`. Evals run offline, several providers can be compared, and a changed prompt never reuses a stale answer.
 
 ## Quality gates
 
@@ -71,7 +74,7 @@ flowchart LR
 | `npm run readme -- --check` | The README topic table and status counts match the metadata. |
 | `npm test` | The loader, grader, progress store, README generator, schema check and AI layer work as described, using fixtures and a fake provider. |
 | `npm run ai:eval -- --check` | Every golden-set case passes its runtime tests, so the expected verdicts depend on the AI review alone. |
-| `npm run ai:eval` | How often the AI review agrees with the golden set. Needs recordings from `npm run ai:record`; not run in CI. |
+| `npm run ai:eval` | How often the AI review agrees with the golden set, for each recorded provider and model. CI replays the committed recordings with no key; it fails if a prompt, case or challenge changed and nobody re-recorded. Prompts are normalised to LF, so a recording made on Windows matches on Linux. |
 
 ## Known limits
 
